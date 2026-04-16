@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Анагама — Журнал Випалу</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ember: #e85d04;
+  --coal:  #0d0705;
+  --ash:   #2a1f1a;
+  --smoke: #4a3728;
+  --clay:  #c9845a;
+  --blush: #d4a5a5;
+  --glow:  #ff9f1c;
+  --white: #f5ede6;
+  --green: #4caf7d;
+  --red:   #e05252;
+  --blue:  #6aaddd;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+body {
+  background: var(--coal);
+  color: var(--white);
+  font-family: 'Crimson Pro', Georgia, serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:1000; opacity:0.35;
+}
+
+/* ── SCREENS ─────────────────────────────────────────── */
+.screen { display:none; }
+.screen.active { display:block; }
+
+/* ── HOME SCREEN ─────────────────────────────────────── */
+.home-wrap {
+  min-height:100vh;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:24px;
+}
+
+.home-logo {
+  font-family:'Cinzel',serif;
+  font-size:2rem; color:var(--clay);
+  letter-spacing:0.2em; text-transform:uppercase;
+  margin-bottom:4px;
+}
+
+.home-tagline {
+  color:var(--smoke); font-style:italic;
+  font-size:0.9rem; text-align:center;
+  margin-bottom:40px;
+}
+
+.home-card { width:100%; max-width:360px; }
+
+.home-or {
+  display:flex; align-items:center; gap:12px;
+  margin:14px 0;
+}
+.home-or::before,.home-or::after {
+  content:''; flex:1; height:1px;
+  background:var(--smoke); opacity:0.4;
+}
+.home-or span {
+  color:var(--smoke); font-size:0.72rem;
+  font-family:'Cinzel',serif; letter-spacing:0.1em;
+}
+
+.join-row { display:flex; gap:8px; }
+.join-row input {
+  flex:1;
+  background:var(--coal); border:1px solid var(--smoke);
+  border-radius:8px; padding:13px 12px;
+  color:var(--white); font-family:'Cinzel',serif;
+  font-size:1rem; letter-spacing:0.2em; outline:none;
+  text-transform:uppercase;
+}
+.join-row input::placeholder { letter-spacing:0.1em; font-size:0.85rem; color:var(--smoke); font-family:'Crimson Pro',serif; text-transform:none; }
+.join-row input:focus { border-color:var(--clay); }
+
+.home-note {
+  text-align:center; font-size:0.72rem;
+  color:var(--smoke); margin-top:16px;
+  font-style:italic;
+}
+.home-note a { color:var(--clay); cursor:pointer; text-decoration:underline; }
+
+/* ── SETUP MODAL helper ────────────────────────────────── */
+.setup-steps { font-size:0.85rem; color:var(--blush); line-height:1.8; }
+.setup-steps ol { padding-left:18px; }
+.setup-steps code {
+  background:rgba(74,55,40,0.7); padding:1px 6px;
+  border-radius:3px; font-size:0.78rem; color:var(--glow);
+}
+
+/* ── HEADER ──────────────────────────────────────────── */
+header {
+  background:linear-gradient(180deg,#1a0c07 0%,var(--coal) 100%);
+  border-bottom:1px solid var(--smoke);
+  padding:10px 14px 8px;
+  position:sticky; top:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+}
+
+.hdr-left h1 {
+  font-family:'Cinzel',serif; font-size:0.95rem;
+  letter-spacing:0.14em; color:var(--clay); text-transform:uppercase;
+}
+
+.hdr-code {
+  font-size:0.62rem; color:var(--smoke);
+  font-family:'Cinzel',serif; letter-spacing:0.08em;
+  margin-top:2px; cursor:pointer;
+}
+.hdr-code .cv { color:var(--glow); letter-spacing:0.22em; }
+
+.hdr-right { display:flex; align-items:center; gap:10px; }
+
+.fire-dot {
+  width:8px; height:8px; border-radius:50%;
+  background:var(--ember); box-shadow:0 0 8px var(--ember);
+  animation:pulse 2s ease-in-out infinite;
+}
+
+.sync-dot {
+  width:8px; height:8px; border-radius:50%; background:var(--smoke);
+}
+.sync-dot.online  { background:var(--green); box-shadow:0 0 5px var(--green); }
+.sync-dot.syncing { background:var(--glow); animation:pulse 0.8s infinite; }
+.sync-dot.offline { background:var(--red); }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+.icon-btn {
+  background:none; border:none;
+  color:var(--smoke); font-size:1.1rem;
+  cursor:pointer; padding:3px 5px;
+}
+
+/* ── OFFLINE BANNER ──────────────────────────────────── */
+.offline-banner {
+  display:none;
+  background:rgba(224,82,82,.18); border-bottom:1px solid var(--red);
+  padding:5px 14px; font-size:0.7rem; color:var(--red);
+  font-family:'Cinzel',serif; letter-spacing:0.08em; text-align:center;
+}
+.offline-banner.show { display:block; }
+
+/* ── TABS ────────────────────────────────────────────── */
+.tabs {
+  display:flex; border-bottom:1px solid var(--smoke);
+  background:var(--ash); position:sticky; top:53px; z-index:99;
+  overflow-x:auto;
+}
+.tabs::-webkit-scrollbar { display:none; }
+
+.tab {
+  flex:1; min-width:58px; padding:9px 4px;
+  text-align:center; font-family:'Cinzel',serif;
+  font-size:0.57rem; letter-spacing:0.07em; text-transform:uppercase;
+  color:rgba(245,237,230,0.45); cursor:pointer; border:none; background:none;
+  transition:all .25s; border-bottom:2px solid transparent; white-space:nowrap;
+}
+.tab:hover { color:rgba(245,237,230,0.75); }
+.tab.active { color:var(--clay); border-bottom-color:var(--ember); }
+
+/* ── SECTIONS ────────────────────────────────────────── */
+.section { display:none; padding:12px 13px 60px; }
+.section.active { display:block; }
+
+/* ── CARDS ───────────────────────────────────────────── */
+.card {
+  background:var(--ash); border:1px solid var(--smoke);
+  border-radius:9px; padding:13px; margin-bottom:11px;
+}
+.card h2 {
+  font-family:'Cinzel',serif; font-size:0.8rem;
+  letter-spacing:0.1em; color:var(--clay);
+  margin-bottom:10px; text-transform:uppercase;
+}
+.card h3 {
+  font-family:'Cinzel',serif; font-size:0.7rem;
+  letter-spacing:0.08em; color:var(--blush);
+  margin-bottom:8px; text-transform:uppercase;
+}
+
+/* ── TEMP DISPLAY ────────────────────────────────────── */
+.temp-display { display:flex; align-items:baseline; gap:6px; margin-bottom:10px; }
+.temp-big {
+  font-family:'Cinzel',serif; font-size:2.8rem;
+  font-weight:700; color:var(--glow); line-height:1;
+  text-shadow:0 0 18px rgba(255,159,28,.4);
+}
+.temp-unit { font-size:1.1rem; color:var(--clay); }
+.temp-zone { font-size:0.72rem; color:var(--blush); font-style:italic; }
+
+/* ── DEVIATION ───────────────────────────────────────── */
+.deviation {
+  display:inline-block; padding:3px 10px; border-radius:10px;
+  font-size:0.7rem; font-family:'Cinzel',serif; letter-spacing:0.06em; margin-bottom:9px;
+}
+.deviation.above  { background:rgba(224,82,82,.15); color:var(--red); border:1px solid rgba(224,82,82,.3); }
+.deviation.below  { background:rgba(106,173,221,.15); color:var(--blue); border:1px solid rgba(106,173,221,.3); }
+.deviation.ok     { background:rgba(76,175,125,.15); color:var(--green); border:1px solid rgba(76,175,125,.3); }
+
+/* ── SHIFT NOW ───────────────────────────────────────── */
+.shift-now {
+  display:flex; align-items:center; gap:8px;
+  padding:7px 11px;
+  background:rgba(201,132,90,.08); border:1px solid rgba(201,132,90,.2);
+  border-radius:6px; margin-bottom:9px;
+}
+.shift-label { font-size:0.65rem; font-family:'Cinzel',serif; color:var(--smoke); letter-spacing:0.08em; text-transform:uppercase; }
+.shift-person { font-size:0.95rem; color:var(--clay); }
+
+/* ── FORM: BUTTON GROUPS ─────────────────────────────── */
+.grp-label {
+  display:block; font-size:0.68rem; letter-spacing:0.1em;
+  text-transform:uppercase; color:var(--blush);
+  margin-bottom:5px; font-family:'Cinzel',serif;
+}
+
+.btn-grp { display:flex; gap:5px; flex-wrap:wrap; margin-bottom:11px; }
+
+.grp-btn {
+  padding:7px 10px; border:1px solid var(--smoke);
+  border-radius:6px; background:transparent; color:var(--blush);
+  font-size:0.78rem; font-family:'Crimson Pro',serif;
+  cursor:pointer; transition:all .18s; white-space:nowrap;
+}
+.grp-btn.active {
+  border-color:var(--clay); background:rgba(201,132,90,.15); color:var(--clay);
+}
+
+/* Chimney special colors */
+.grp-btn[data-val="none"].active    { border-color:var(--green);  background:rgba(76,175,125,.18); color:var(--green); }
+.grp-btn[data-val="white"].active   { border-color:#ccc; background:rgba(220,220,220,.12); color:#ddd; }
+.grp-btn[data-val="black"].active   { border-color:#888; background:rgba(100,100,100,.2); color:#aaa; }
+.grp-btn[data-val="flame"].active   { border-color:var(--ember); background:rgba(232,93,4,.18); color:var(--ember); }
+
+/* ── INPUT GROUP ─────────────────────────────────────── */
+.inp-grp { margin-bottom:11px; }
+.inp-grp label {
+  display:block; font-size:0.68rem; letter-spacing:0.1em;
+  text-transform:uppercase; color:var(--blush); margin-bottom:5px;
+  font-family:'Cinzel',serif;
+}
+.inp-grp input,
+.inp-grp textarea,
+.inp-grp select {
+  width:100%; background:var(--coal); border:1px solid var(--smoke);
+  border-radius:6px; padding:9px 11px; color:var(--white);
+  font-family:'Crimson Pro',serif; font-size:1rem; outline:none;
+  transition:border-color .2s; -webkit-appearance:none; appearance:none;
+}
+.inp-grp input:focus,.inp-grp textarea:focus,.inp-grp select:focus { border-color:var(--clay); }
+.inp-grp textarea { resize:vertical; min-height:54px; }
+
+.inp-row { display:flex; gap:9px; }
+.inp-row .inp-grp { flex:1; }
+
+/* ── BUTTONS ─────────────────────────────────────────── */
+.btn-primary {
+  width:100%; padding:13px;
+  background:linear-gradient(135deg,var(--ember),var(--glow));
+  border:none; border-radius:8px; color:white;
+  font-family:'Cinzel',serif; font-size:0.78rem;
+  letter-spacing:0.14em; text-transform:uppercase; cursor:pointer;
+  box-shadow:0 4px 14px rgba(232,93,4,.3); transition:transform .15s;
+}
+.btn-primary:active { transform:scale(.98); }
+
+.btn-secondary {
+  width:100%; padding:11px; background:transparent;
+  border:1px solid var(--smoke); border-radius:8px; color:var(--clay);
+  font-family:'Cinzel',serif; font-size:0.7rem;
+  letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; margin-top:7px;
+}
+.btn-danger { border-color:rgba(224,82,82,.5); color:var(--red); }
+
+.btn-sm {
+  padding:5px 12px; background:transparent;
+  border:1px solid var(--smoke); border-radius:6px; color:var(--clay);
+  font-family:'Cinzel',serif; font-size:0.62rem;
+  letter-spacing:0.1em; text-transform:uppercase; cursor:pointer;
+}
+.btn-sm.primary {
+  border-color:var(--ember); color:var(--ember);
+  background:rgba(232,93,4,.08);
+}
+
+/* ── LOG ENTRIES ─────────────────────────────────────── */
+.log-entry {
+  display:flex; gap:9px; padding:9px 0;
+  border-bottom:1px solid rgba(74,55,40,.5);
+}
+.log-entry:last-child { border-bottom:none; }
+.log-time { font-family:'Cinzel',serif; font-size:0.62rem; color:var(--smoke); min-width:38px; margin-top:2px; }
+.log-content { flex:1; }
+.log-temp { font-size:1rem; color:var(--glow); }
+.log-badge {
+  display:inline-block; font-size:0.62rem; padding:1px 7px;
+  border-radius:8px; margin-left:6px; font-family:'Cinzel',serif; letter-spacing:0.06em;
+}
+.ch-none  { background:rgba(76,175,125,.18); color:var(--green); }
+.ch-white { background:rgba(220,220,220,.1); color:#ccc; }
+.ch-black { background:rgba(100,100,100,.25); color:#999; }
+.ch-flame { background:rgba(232,93,4,.18); color:var(--ember); }
+.log-meta { font-size:0.7rem; color:var(--smoke); margin-top:2px; }
+.log-note { font-size:0.82rem; color:var(--blush); font-style:italic; margin-top:2px; }
+
+/* ── STATUS CARD extras ──────────────────────────────── */
+.session-meta { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+.s-name { font-family:'Cinzel',serif; font-size:0.68rem; letter-spacing:0.1em; color:var(--blush); }
+.s-badge {
+  font-size:0.62rem; font-family:'Cinzel',serif; letter-spacing:0.08em;
+  padding:2px 8px; border-radius:9px; text-transform:uppercase;
+}
+.s-active { background:rgba(232,93,4,.18); color:var(--ember); border:1px solid var(--ember); }
+.s-done   { background:rgba(76,175,125,.12); color:var(--green); border:1px solid var(--green); }
+
+.phase-badge {
+  display:inline-block; padding:2px 8px; border-radius:8px;
+  font-size:0.62rem; font-family:'Cinzel',serif; letter-spacing:0.06em;
+  background:rgba(201,132,90,.12); color:var(--clay);
+  border:1px solid rgba(201,132,90,.25); margin-bottom:8px;
+}
+
+.timer { font-family:'Cinzel',serif; font-size:0.9rem; color:var(--blush); letter-spacing:0.1em; }
+
+.divider { height:1px; background:var(--smoke); margin:11px 0; opacity:.35; }
+
+.no-session { text-align:center; padding:36px 16px; color:var(--smoke); }
+.no-session .ico { font-size:2.4rem; margin-bottom:9px; }
+.no-session p { font-style:italic; font-size:0.85rem; margin-bottom:14px; }
+
+/* ── PLANNING ────────────────────────────────────────── */
+.plan-row {
+  display:flex; align-items:center; gap:7px;
+  padding:7px 0; border-bottom:1px solid rgba(74,55,40,.4);
+}
+.plan-row:last-child { border-bottom:none; }
+.plan-time { font-family:'Cinzel',serif; font-size:0.78rem; color:var(--glow); min-width:46px; }
+.plan-arrow { color:var(--smoke); font-size:0.8rem; }
+.plan-temp { font-size:0.95rem; color:var(--white); flex:1; }
+.del-btn { background:none; border:none; color:var(--smoke); font-size:1.1rem; cursor:pointer; padding:3px 6px; }
+.del-btn:hover { color:var(--red); }
+
+.shift-row {
+  display:flex; align-items:center; gap:7px;
+  padding:7px 0; border-bottom:1px solid rgba(74,55,40,.4);
+}
+.shift-row:last-child { border-bottom:none; }
+.shift-range { font-family:'Cinzel',serif; font-size:0.7rem; color:var(--glow); min-width:88px; }
+.shift-who { font-size:0.9rem; color:var(--white); flex:1; }
+
+.add-row { display:flex; gap:7px; align-items:flex-end; margin-top:10px; }
+.add-row .inp-grp { margin-bottom:0; }
+
+/* ── CHART ───────────────────────────────────────────── */
+.chart-wrap {
+  background:var(--ash); border:1px solid var(--smoke);
+  border-radius:9px; padding:13px; margin-bottom:11px; overflow:hidden;
+}
+.chart-wrap h3 {
+  font-family:'Cinzel',serif; font-size:0.72rem;
+  letter-spacing:0.1em; color:var(--clay); margin-bottom:10px; text-transform:uppercase;
+}
+canvas { width:100% !important; display:block; }
+
+.legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:8px; }
+.legend-item { display:flex; align-items:center; gap:5px; font-size:0.7rem; color:var(--blush); }
+.l-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.l-line { width:18px; height:2px; flex-shrink:0; }
+
+/* ── HISTORY ─────────────────────────────────────────── */
+.hist-item {
+  background:var(--ash); border:1px solid var(--smoke);
+  border-radius:8px; padding:12px; margin-bottom:8px; cursor:pointer;
+  transition:border-color .2s;
+}
+.hist-item:active { border-color:var(--clay); }
+.hist-title { font-family:'Cinzel',serif; font-size:0.78rem; color:var(--clay); letter-spacing:0.08em; }
+.hist-meta { font-size:0.75rem; color:var(--smoke); margin-top:3px; font-style:italic; }
+.hist-stats { display:flex; gap:14px; margin-top:8px; flex-wrap:wrap; }
+.stat { text-align:center; }
+.stat-val { font-size:0.95rem; color:var(--glow); font-family:'Cinzel',serif; }
+.stat-lbl { font-size:0.58rem; color:var(--smoke); letter-spacing:0.06em; text-transform:uppercase; }
+
+.empty-state { text-align:center; padding:28px 16px; color:var(--smoke); font-style:italic; font-size:0.85rem; }
+
+/* ── MODALS ──────────────────────────────────────────── */
+.modal {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,.87); z-index:999;
+  align-items:center; justify-content:center; padding:20px;
+}
+.modal.open { display:flex; }
+
+.modal-box {
+  background:var(--ash); border:1px solid var(--smoke);
+  border-radius:12px; padding:22px; width:100%; max-width:360px;
+  max-height:88vh; overflow-y:auto;
+}
+.modal-title {
+  font-family:'Cinzel',serif; font-size:0.82rem; color:var(--clay);
+  letter-spacing:0.12em; text-transform:uppercase; margin-bottom:14px;
+}
+.modal-text { color:var(--blush); font-style:italic; margin-bottom:16px; font-size:0.88rem; }
+
+/* ── TOAST ───────────────────────────────────────────── */
+#toast {
+  position:fixed; bottom:22px; left:50%;
+  transform:translateX(-50%) translateY(70px);
+  background:var(--ash); border:1px solid var(--clay);
+  border-radius:8px; padding:9px 20px;
+  font-family:'Cinzel',serif; font-size:0.72rem;
+  letter-spacing:0.1em; color:var(--clay); z-index:1100;
+  transition:transform .28s ease; white-space:nowrap;
+}
+#toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ── PERSON DROPDOWN ─────────────────────────────────── */
+.person-wrap { position:relative; }
+.person-dropdown {
+  position:absolute; top:calc(100% + 3px); left:0; right:0; z-index:500;
+  background:#1e1410; border:1px solid var(--clay); border-radius:7px;
+  max-height:190px; overflow-y:auto;
+  box-shadow:0 6px 20px rgba(0,0,0,.6);
+}
+.person-option {
+  padding:11px 13px; cursor:pointer;
+  font-size:0.95rem; color:var(--white);
+  font-family:'Crimson Pro',serif;
+  border-bottom:1px solid rgba(74,55,40,.35);
+}
+.person-option:last-child { border-bottom:none; }
+.person-option:active { background:rgba(201,132,90,.25); color:var(--clay); }
+
+/* ── FIREBASE STATUS (home) ──────────────────────────── */
+.fb-status {
+  display:flex; align-items:center; gap:8px;
+  padding:9px 13px; border-radius:7px; margin-top:12px;
+  font-size:0.72rem; font-family:'Cinzel',serif; letter-spacing:0.07em;
+  cursor:pointer;
+}
+.fb-status.ok   { background:rgba(76,175,125,.1); color:var(--green); border:1px solid rgba(76,175,125,.25); }
+.fb-status.warn { background:rgba(232,93,4,.1); color:var(--glow); border:1px solid rgba(232,93,4,.25); }
+.fb-status-dot  { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     HOME SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="home-wrap">
+    <div class="home-logo">🔥 Анагама</div>
+    <div class="home-tagline">Журнал Випалу · Kiln Log</div>
+
+    <div class="home-card">
+      <button class="btn-primary" onclick="openNewSession()">Створити Новий Випал</button>
+
+      <div class="home-or"><span>або</span></div>
+
+      <div class="join-row">
+        <input id="join-code" type="text" placeholder="Код сесії (напр. KB4MXZ)" maxlength="6">
+        <button class="btn-sm primary" style="height:47px;white-space:nowrap" onclick="joinSession()">Увійти</button>
+      </div>
+
+      <div id="fb-status-home" class="fb-status warn" onclick="showModal('modal-setup')">
+        <div class="fb-status-dot" style="background:var(--glow)"></div>
+        <span>Firebase не налаштовано — синхронізація між телефонами не працює. Натисни щоб налаштувати.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     APP SCREEN
+══════════════════════════════════════════════════════════ -->
+<div id="screen-app" class="screen">
+
+  <div id="offline-banner" class="offline-banner">Немає зв'язку з Firebase — дані не синхронізуються</div>
+
+  <header>
+    <div class="hdr-left">
+      <h1><span class="fire-dot"></span> Анагама</h1>
+      <div class="hdr-code" onclick="copyCode()">
+        Код: <span id="hdr-code-val" class="cv">——————</span>
+      </div>
+    </div>
+    <div class="hdr-right">
+      <div id="sync-dot" class="sync-dot"></div>
+      <button class="icon-btn" onclick="showModal('modal-settings')" title="Налаштування">⚙️</button>
+      <button class="icon-btn" onclick="backToHome()" title="Вийти">←</button>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('status')">🔥 Стан</button>
+    <button class="tab" onclick="showTab('add')">✏️ Запис</button>
+    <button class="tab" onclick="showTab('plan')">📋 План</button>
+    <button class="tab" onclick="showTab('chart')">📈 Графік</button>
+    <button class="tab" onclick="showTab('history')">📚 Архів</button>
+  </div>
+
+  <!-- ── ТАБ: СТАН ────────────────────────────────────── -->
+  <div id="tab-status" class="section active">
+    <div id="status-content"></div>
+  </div>
+
+  <!-- ── ТАБ: ЗАПИС ───────────────────────────────────── -->
+  <div id="tab-add" class="section">
+    <div id="no-session-msg" class="no-session" style="display:none">
+      <div class="ico">🏺</div>
+      <p>Немає активного випалу</p>
+      <button class="btn-primary" onclick="openNewSession()">Почати Новий Випал</button>
+    </div>
+
+    <div id="add-form">
+      <div class="card">
+        <div class="inp-row">
+          <div class="inp-grp">
+            <label>Температура °C</label>
+            <input type="number" id="inp-temp" placeholder="850" min="0" max="1560" inputmode="numeric">
+          </div>
+          <div class="inp-grp">
+            <label>Зона</label>
+            <select id="inp-zone">
+              <option value="топка">Топка</option>
+              <option value="середина">Середина</option>
+              <option value="хвіст">Хвіст</option>
+            </select>
+          </div>
+        </div>
+
+        <span class="grp-label">Труба — стан диму</span>
+        <div class="btn-grp" id="grp-chimney">
+          <button class="grp-btn active" data-val="none"  onclick="pick('chimney','none',this)">🌫 Нема</button>
+          <button class="grp-btn"        data-val="white" onclick="pick('chimney','white',this)">⬜ Білий</button>
+          <button class="grp-btn"        data-val="black" onclick="pick('chimney','black',this)">⬛ Чорний</button>
+          <button class="grp-btn"        data-val="flame" onclick="pick('chimney','flame',this)">🔥 Вогонь</button>
+        </div>
+
+        <span class="grp-label">Порода дров</span>
+        <div class="btn-grp" id="grp-woodtype">
+          <button class="grp-btn"        data-val="branches"  onclick="pick('woodType','branches',this)">Гілки</button>
+          <button class="grp-btn active" data-val="oak"       onclick="pick('woodType','oak',this)">Дуб</button>
+          <button class="grp-btn"        data-val="fruit"     onclick="pick('woodType','fruit',this)">Фруктові</button>
+          <button class="grp-btn"        data-val="dry_pine"  onclick="pick('woodType','dry_pine',this)">Сосна суха</button>
+          <button class="grp-btn"        data-val="fresh_pine" onclick="pick('woodType','fresh_pine',this)">Сосна свіжа</button>
+        </div>
+
+        <span class="grp-label">Кількість дров</span>
+        <div class="btn-grp" id="grp-amount">
+          <button class="grp-btn"        data-val="handful" onclick="pick('woodAmount','handful',this)">Жменька</button>
+          <button class="grp-btn"        data-val="one"     onclick="pick('woodAmount','one',this)">Полешко</button>
+          <button class="grp-btn active" data-val="two"     onclick="pick('woodAmount','two',this)">2 полешка</button>
+          <button class="grp-btn"        data-val="three"   onclick="pick('woodAmount','three',this)">3 полешка</button>
+        </div>
+
+        <span class="grp-label">Метод підкидання</span>
+        <div class="btn-grp" id="grp-method">
+          <button class="grp-btn active" data-val="fire_door" onclick="pick('stokingMethod','fire_door',this)">Вог. дверцята</button>
+          <button class="grp-btn"        data-val="bottom"    onclick="pick('stokingMethod','bottom',this)">Нижня</button>
+          <button class="grp-btn"        data-val="top"       onclick="pick('stokingMethod','top',this)">Верхня</button>
+          <button class="grp-btn"        data-val="side"      onclick="pick('stokingMethod','side',this)">Сайдстоки</button>
+        </div>
+
+        <div class="inp-grp person-wrap">
+          <label>Хто чергує</label>
+          <input type="text" id="inp-person" placeholder="Ім'я" autocomplete="off"
+                 onfocus="openDrop('inp-person')" oninput="filterDrop('inp-person')" onblur="closeDrop('inp-person',300)">
+          <div id="inp-person-drop" class="person-dropdown" style="display:none"></div>
+        </div>
+
+        <div class="inp-grp">
+          <label>Нотатка</label>
+          <textarea id="inp-note" placeholder="Спостереження, атмосфера..."></textarea>
+        </div>
+
+        <button class="btn-primary" onclick="addEntry()">Зберегти Запис</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ── ТАБ: ПЛАНУВАННЯ ──────────────────────────────── -->
+  <div id="tab-plan" class="section">
+
+    <!-- Учасники -->
+    <div class="card">
+      <h2>Учасники Випалу</h2>
+      <div id="participants-list"></div>
+      <div class="add-row" style="margin-top:10px">
+        <div class="inp-grp" style="flex:1;margin-bottom:0">
+          <input type="text" id="part-name" placeholder="Ім'я учасника" autocomplete="off">
+        </div>
+        <button class="btn-sm primary" style="height:42px;align-self:flex-end" onclick="addParticipant()">+</button>
+      </div>
+    </div>
+
+    <!-- Крива температури -->
+    <div class="card">
+      <h2>Планова Крива Температури</h2>
+      <div id="plan-curve-list"></div>
+
+      <div class="divider"></div>
+      <div style="font-size:0.72rem;color:var(--blush);margin-bottom:8px;font-family:'Cinzel',serif;letter-spacing:0.08em">ДОДАТИ ТОЧКУ</div>
+      <div class="add-row">
+        <div class="inp-grp" style="flex:0 0 52px">
+          <label>Год</label>
+          <input type="number" id="pc-h" placeholder="0" min="0" inputmode="numeric">
+        </div>
+        <div class="inp-grp" style="flex:0 0 52px">
+          <label>Хв</label>
+          <input type="number" id="pc-m" placeholder="0" min="0" max="59" inputmode="numeric">
+        </div>
+        <div class="inp-grp">
+          <label>°C</label>
+          <input type="number" id="pc-temp" placeholder="800" inputmode="numeric">
+        </div>
+        <button class="btn-sm primary" style="height:42px;align-self:flex-end" onclick="addPlanPoint()">+</button>
+      </div>
+    </div>
+
+    <!-- Шифти -->
+    <div class="card">
+      <h2>Шифти Чергування</h2>
+      <div id="plan-shifts-list"></div>
+
+      <div class="divider"></div>
+      <div style="font-size:0.72rem;color:var(--blush);margin-bottom:8px;font-family:'Cinzel',serif;letter-spacing:0.08em">ДОДАТИ ШИФТ</div>
+
+      <div class="inp-grp person-wrap">
+        <label>Ім'я чергового</label>
+        <input type="text" id="sh-person" placeholder="Ім'я або вибери зі списку" autocomplete="off"
+               onfocus="openDrop('sh-person')" oninput="filterDrop('sh-person')" onblur="closeDrop('sh-person',300)">
+        <div id="sh-person-drop" class="person-dropdown" style="display:none"></div>
+      </div>
+      <div style="display:flex;gap:7px;margin-bottom:11px">
+        <div style="flex:1">
+          <div style="font-size:0.65rem;color:var(--smoke);font-family:'Cinzel',serif;letter-spacing:0.08em;margin-bottom:4px">ПОЧАТОК (год:хв)</div>
+          <div style="display:flex;gap:5px">
+            <input type="number" id="sh-sh" placeholder="0" min="0" style="flex:1;background:var(--coal);border:1px solid var(--smoke);border-radius:6px;padding:9px 8px;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;outline:none;width:100%" inputmode="numeric">
+            <span style="color:var(--smoke);padding:10px 2px">:</span>
+            <input type="number" id="sh-sm" placeholder="00" min="0" max="59" style="flex:1;background:var(--coal);border:1px solid var(--smoke);border-radius:6px;padding:9px 8px;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;outline:none;width:100%" inputmode="numeric">
+          </div>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:0.65rem;color:var(--smoke);font-family:'Cinzel',serif;letter-spacing:0.08em;margin-bottom:4px">КІНЕЦЬ (год:хв)</div>
+          <div style="display:flex;gap:5px">
+            <input type="number" id="sh-eh" placeholder="3" min="0" style="flex:1;background:var(--coal);border:1px solid var(--smoke);border-radius:6px;padding:9px 8px;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;outline:none;width:100%" inputmode="numeric">
+            <span style="color:var(--smoke);padding:10px 2px">:</span>
+            <input type="number" id="sh-em" placeholder="00" min="0" max="59" style="flex:1;background:var(--coal);border:1px solid var(--smoke);border-radius:6px;padding:9px 8px;color:var(--white);font-family:'Crimson Pro',serif;font-size:1rem;outline:none;width:100%" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+      <button class="btn-sm primary" style="width:100%;padding:10px" onclick="addShift()">Додати Шифт</button>
+    </div>
+  </div>
+
+  <!-- ── ТАБ: ГРАФІКИ ──────────────────────────────────── -->
+  <div id="tab-chart" class="section">
+    <div class="chart-wrap">
+      <h3>Температура: Плановий та Фактичний</h3>
+      <canvas id="tempChart" height="220"></canvas>
+      <div class="legend">
+        <div class="legend-item"><div class="l-line" style="background:#aaa;border-top:2px dashed #aaa;background:none"></div> План</div>
+        <div class="legend-item"><div class="l-line" style="background:var(--ember)"></div> Факт</div>
+        <div class="legend-item"><div class="l-dot" style="background:var(--green)"></div> Нема диму</div>
+        <div class="legend-item"><div class="l-dot" style="background:#ccc"></div> Білий</div>
+        <div class="legend-item"><div class="l-dot" style="background:#888"></div> Чорний</div>
+        <div class="legend-item"><div class="l-dot" style="background:var(--ember)"></div> Вогонь</div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <h3>Стан Диму з Труби</h3>
+      <canvas id="chimneyChart" height="150"></canvas>
+    </div>
+
+    <div class="chart-wrap">
+      <h3>Порода Дров</h3>
+      <canvas id="woodChart" height="130"></canvas>
+    </div>
+
+    <div id="chart-stats"></div>
+  </div>
+
+  <!-- ── ТАБ: АРХІВ ────────────────────────────────────── -->
+  <div id="tab-history" class="section">
+    <div id="history-list"></div>
+  </div>
+
+</div><!-- /screen-app -->
+
+<!-- ══════════════════════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════════════════════ -->
+
+<!-- New session -->
+<div id="modal-new" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">Новий Випал</div>
+    <div class="inp-grp">
+      <label>Назва випалу</label>
+      <input id="modal-name" type="text" placeholder="Випал Весна 2026">
+    </div>
+    <button onclick="confirmNew()" class="btn-primary">Почати</button>
+    <button onclick="closeModal('modal-new')" class="btn-secondary">Скасувати</button>
+  </div>
+</div>
+
+<!-- End session -->
+<div id="modal-end" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">Завершити Випал?</div>
+    <div class="modal-text">Всі записи збережуться в архіві. Синхронізація зупиниться.</div>
+    <button onclick="confirmEnd()" class="btn-primary" style="background:var(--green)">Завершити</button>
+    <button onclick="closeModal('modal-end')" class="btn-secondary">Скасувати</button>
+  </div>
+</div>
+
+<!-- History detail -->
+<div id="modal-detail" class="modal">
+  <div class="modal-box">
+    <div id="modal-detail-body"></div>
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button onclick="exportCSV(currentDetailSession)" class="btn-sm primary" style="flex:1;padding:11px">📥 Excel (CSV)</button>
+      <button onclick="printSession(currentDetailSession)" class="btn-sm primary" style="flex:1;padding:11px">🖨️ Друк / PDF</button>
+    </div>
+    <button onclick="closeModal('modal-detail')" class="btn-secondary">Закрити</button>
+  </div>
+</div>
+
+<!-- Firebase setup -->
+<div id="modal-setup" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">Налаштування Firebase</div>
+    <div class="setup-steps">
+      <p style="margin-bottom:10px;color:var(--blush)">Firebase — безкоштовний хмарний сервіс Google для синхронізації між телефонами в реальному часі.</p>
+      <ol>
+        <li>Відкрий <strong style="color:var(--glow)">console.firebase.google.com</strong></li>
+        <li>Створи новий проект (будь-яка назва)</li>
+        <li>Перейди до <strong>Realtime Database</strong> → Створити базу даних</li>
+        <li>Обери <strong>«Тестовий режим»</strong> (Test mode)</li>
+        <li>Скопіюй URL бази — виглядає як:<br>
+          <code>https://ім'я-default-rtdb.firebaseio.com</code>
+        </li>
+        <li>Встав URL нижче</li>
+      </ol>
+    </div>
+    <div class="inp-grp" style="margin-top:14px">
+      <label>Firebase Database URL</label>
+      <input id="setup-fb-url" type="url" placeholder="https://xxx-default-rtdb.firebaseio.com">
+    </div>
+    <button onclick="saveSetup()" class="btn-primary">Зберегти</button>
+    <button onclick="closeModal('modal-setup')" class="btn-secondary">Пізніше</button>
+  </div>
+</div>
+
+<!-- Settings (in-app) -->
+<div id="modal-settings" class="modal">
+  <div class="modal-box">
+    <div class="modal-title">Налаштування</div>
+    <div class="inp-grp">
+      <label>Firebase Database URL</label>
+      <input id="settings-fb-url" type="url" placeholder="https://xxx-default-rtdb.firebaseio.com">
+    </div>
+    <button onclick="saveSettings()" class="btn-primary">Зберегти</button>
+    <button onclick="closeModal('modal-settings')" class="btn-secondary">Скасувати</button>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════ -->
+<script>
+// ── CONFIG ─────────────────────────────────────────────────────────────────
+const LS = {
+  fbUrl:   'anagama_fb_url',
+  sessId:  'anagama_session_id',
+};
+
+let CFG = {
+  fbUrl: (localStorage.getItem(LS.fbUrl) || 'https://anagama-21-default-rtdb.firebaseio.com').replace(/\/$/, ''),
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let session = null;   // current session object
+let syncTimer = null;
+let tickTimer  = null;
+let lastHash  = '';
+
+// Entry form choices
+let F = {
+  chimney:      'none',
+  woodType:     'oak',
+  woodAmount:   'two',
+  stokingMethod:'fire_door',
+};
+
+// ── FIREBASE REST ──────────────────────────────────────────────────────────
+async function fbGet(path) {
+  if (!CFG.fbUrl) return null;
+  try {
+    const r = await fetch(`${CFG.fbUrl}/${path}.json`, {cache:'no-store'});
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+async function fbSet(path, data) {
+  if (!CFG.fbUrl) return false;
+  try {
+    const r = await fetch(`${CFG.fbUrl}/${path}.json`, {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    return r.ok;
+  } catch { return false; }
+}
+
+// ── SYNC ───────────────────────────────────────────────────────────────────
+function startSync() {
+  stopSync();
+  if (!CFG.fbUrl || !session) return;
+  syncTimer = setInterval(pullSession, 10000);
+}
+
+function stopSync() {
+  if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
+}
+
+async function pullSession() {
+  if (!session) return;
+  setSyncDot('syncing');
+  const data = await fbGet(`sessions/${session.id}`);
+  if (data) {
+    const h = JSON.stringify(data);
+    if (h !== lastHash) {
+      lastHash = h;
+      session = data;
+      localStorage.setItem('anagama_session_data', JSON.stringify(session));
+      renderAll();
+    }
+    setSyncDot('online');
+    setBanner(false);
+  } else {
+    setSyncDot('offline');
+    setBanner(!!CFG.fbUrl);
+  }
+}
+
+async function pushSession() {
+  if (!session) return;
+  // Always save locally first (works offline + survives refresh)
+  localStorage.setItem('anagama_session_data', JSON.stringify(session));
+  if (!CFG.fbUrl) return;
+  setSyncDot('syncing');
+  const ok = await fbSet(`sessions/${session.id}`, session);
+  if (ok) {
+    lastHash = JSON.stringify(session);
+    setSyncDot('online');
+    setBanner(false);
+  } else {
+    setSyncDot('offline');
+    setBanner(true);
+  }
+}
+
+function setSyncDot(st) {
+  const d = document.getElementById('sync-dot');
+  if (d) d.className = 'sync-dot ' + st;
+}
+
+function setBanner(show) {
+  const b = document.getElementById('offline-banner');
+  if (b) b.classList.toggle('show', show);
+}
+
+// ── SESSION ─────────────────────────────────────────────────────────────────
+function genCode() {
+  const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  return Array.from({length:6}, () => abc[Math.floor(Math.random()*abc.length)]).join('');
+}
+
+function openNewSession() {
+  document.getElementById('modal-name').value =
+    'Випал ' + new Date().toLocaleDateString('uk-UA',{day:'numeric',month:'long'});
+  showModal('modal-new');
+}
+
+async function confirmNew() {
+  const name = document.getElementById('modal-name').value.trim();
+  if (!name) return;
+  closeModal('modal-new');
+
+  session = {
+    id: genCode(),
+    name: name,
+    startTime: Date.now(),
+    endTime: null,
+    plannedCurve: [],
+    shifts: [],
+    entries: {}
+  };
+
+  localStorage.setItem(LS.sessId, session.id);
+  await pushSession();
+  showApp();
+  startSync();
+  renderAll();
+  showTab('status');
+}
+
+async function joinSession() {
+  const code = document.getElementById('join-code').value.trim().toUpperCase();
+  if (code.length < 4) { toast('Введіть код сесії'); return; }
+
+  if (CFG.fbUrl) {
+    setSyncDot('syncing');
+    const data = await fbGet(`sessions/${code}`);
+    if (!data) { toast('Сесію не знайдено'); setSyncDot('offline'); return; }
+    session = data;
+  } else {
+    // offline — create stub
+    session = {id:code, name:`Сесія ${code}`, startTime:Date.now(), endTime:null,
+                plannedCurve:[], shifts:[], entries:{}};
+  }
+
+  localStorage.setItem(LS.sessId, code);
+  showApp();
+  startSync();
+  renderAll();
+  showTab('status');
+}
+
+async function confirmEnd() {
+  closeModal('modal-end');
+  if (!session) return;
+  session.endTime = Date.now();
+  await pushSession();
+  stopSync();
+  toast('Випал завершено');
+  renderAll();
+  showTab('history');
+}
+
+function backToHome() {
+  stopSync();
+  session = null;
+  localStorage.removeItem(LS.sessId);
+  localStorage.removeItem('anagama_session_data');
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-home').classList.add('active');
+}
+
+// ── ENTRY ────────────────────────────────────────────────────────────────────
+async function addEntry() {
+  if (!session || session.endTime) return;
+
+  const tempEl = document.getElementById('inp-temp');
+  const temp = parseInt(tempEl.value);
+  if (!temp && temp !== 0) { tempEl.style.borderColor='var(--red)'; toast('Введіть температуру'); return; }
+  if (temp > 1560) { tempEl.style.borderColor='var(--red)'; toast('Максимум 1560°C'); tempEl.value=1560; return; }
+  if (temp < 0)    { tempEl.style.borderColor='var(--red)'; return; }
+  tempEl.style.borderColor = '';
+
+  const e = {
+    id: Date.now(),
+    time: Date.now(),
+    temp,
+    zone:          document.getElementById('inp-zone').value,
+    person:        document.getElementById('inp-person').value.trim(),
+    chimney:       F.chimney,
+    woodType:      F.woodType,
+    woodAmount:    F.woodAmount,
+    stokingMethod: F.stokingMethod,
+    note:          document.getElementById('inp-note').value.trim(),
+  };
+
+  if (!session.entries) session.entries = {};
+  session.entries[e.id] = e;
+
+  tempEl.value = '';
+  document.getElementById('inp-note').value = '';
+
+  await pushSession();
+  renderAll();
+  showTab('status');
+  toast('Запис збережено ✓');
+}
+
+// ── PLAN: CURVE ──────────────────────────────────────────────────────────────
+async function addPlanPoint() {
+  if (!session) return;
+  const h    = parseInt(document.getElementById('pc-h').value) || 0;
+  const m    = parseInt(document.getElementById('pc-m').value) || 0;
+  const temp = parseInt(document.getElementById('pc-temp').value);
+  if (!temp) { toast('Введіть температуру'); return; }
+
+  if (!session.plannedCurve) session.plannedCurve = [];
+  session.plannedCurve.push({minutes: h*60+m, temp});
+  session.plannedCurve.sort((a,b) => a.minutes - b.minutes);
+
+  ['pc-h','pc-m','pc-temp'].forEach(id => document.getElementById(id).value='');
+  await pushSession();
+  renderPlan();
+  toast('Точку додано');
+}
+
+async function delPlanPoint(idx) {
+  if (!session) return;
+  session.plannedCurve.splice(idx, 1);
+  await pushSession();
+  renderPlan();
+}
+
+// ── PARTICIPANTS ──────────────────────────────────────────────────────────────
+async function addParticipant() {
+  if (!session) return;
+  const name = document.getElementById('part-name').value.trim();
+  if (!name) return;
+  if (!session.participants) session.participants = [];
+  if (session.participants.includes(name)) { toast('Вже є в списку'); return; }
+  session.participants.push(name);
+  document.getElementById('part-name').value = '';
+  await pushSession();
+  renderParticipants();
+}
+
+async function delParticipant(idx) {
+  if (!session) return;
+  session.participants.splice(idx,1);
+  await pushSession();
+  renderParticipants();
+}
+
+function renderParticipants() {
+  const el = document.getElementById('participants-list');
+  if (!el) return;
+  const list = session?.participants||[];
+  el.innerHTML = list.length ? list.map((n,i)=>`
+    <div style="display:flex;align-items:center;padding:6px 0;border-bottom:1px solid rgba(74,55,40,.4)">
+      <span style="flex:1;font-size:0.95rem;color:var(--white)">${n}</span>
+      <button class="del-btn" onclick="delParticipant(${i})">×</button>
+    </div>`).join('') : '<div style="font-size:0.8rem;color:var(--smoke);padding:6px 0;font-style:italic">Список порожній</div>';
+}
+
+// ── PERSON DROPDOWN ───────────────────────────────────────────────────────────
+let _dropClose = {};
+
+function openDrop(inputId) {
+  const list = session?.participants||[];
+  if (!list.length) return;
+  const val = (document.getElementById(inputId)?.value||'').toLowerCase();
+  const filtered = list.filter(n => !val || n.toLowerCase().includes(val));
+  buildDrop(inputId, filtered);
+}
+
+function filterDrop(inputId) {
+  const list = session?.participants||[];
+  const val = (document.getElementById(inputId)?.value||'').toLowerCase();
+  const filtered = list.filter(n => !val || n.toLowerCase().includes(val));
+  buildDrop(inputId, filtered);
+}
+
+function buildDrop(inputId, items) {
+  const dd = document.getElementById(inputId+'-drop');
+  if (!dd) return;
+  if (!items.length) { dd.style.display='none'; return; }
+  dd.innerHTML = items.map(n=>
+    `<div class="person-option" onmousedown="pickPerson('${inputId}','${n}')">${n}</div>`
+  ).join('');
+  dd.style.display = 'block';
+}
+
+function pickPerson(inputId, name) {
+  const el = document.getElementById(inputId);
+  if (el) el.value = name;
+  const dd = document.getElementById(inputId+'-drop');
+  if (dd) dd.style.display = 'none';
+}
+
+function closeDrop(inputId, delay) {
+  // Use delay so onmousedown/click on option fires first
+  clearTimeout(_dropClose[inputId]);
+  _dropClose[inputId] = setTimeout(()=>{
+    const dd = document.getElementById(inputId+'-drop');
+    if (dd) dd.style.display='none';
+  }, delay||200);
+}
+
+// ── PLAN: SHIFTS ─────────────────────────────────────────────────────────────
+async function addShift() {
+  if (!session) return;
+  const person = document.getElementById('sh-person').value.trim();
+  if (!person) { toast('Введіть ім\'я'); return; }
+
+  const sh = parseInt(document.getElementById('sh-sh').value)||0;
+  const sm = parseInt(document.getElementById('sh-sm').value)||0;
+  const eh = parseInt(document.getElementById('sh-eh').value)||0;
+  const em = parseInt(document.getElementById('sh-em').value)||0;
+
+  if (!session.shifts) session.shifts = [];
+  session.shifts.push({id: Date.now(), startMin: sh*60+sm, endMin: eh*60+em, person});
+  session.shifts.sort((a,b) => a.startMin - b.startMin);
+
+  ['sh-person','sh-sh','sh-sm','sh-eh','sh-em'].forEach(id => document.getElementById(id).value='');
+  await pushSession();
+  renderPlan();
+  toast('Шифт додано');
+}
+
+async function delShift(id) {
+  if (!session) return;
+  session.shifts = session.shifts.filter(s => s.id != id);
+  await pushSession();
+  renderPlan();
+}
+
+function editShift(id) {
+  const s = session?.shifts?.find(x=>x.id==id);
+  if (!s) return;
+  // Fill the add form with shift data
+  document.getElementById('sh-person').value = s.person;
+  document.getElementById('sh-sh').value = Math.floor(s.startMin/60);
+  document.getElementById('sh-sm').value = s.startMin%60;
+  document.getElementById('sh-eh').value = Math.floor(s.endMin/60);
+  document.getElementById('sh-em').value = s.endMin%60;
+  // Remove the old shift
+  session.shifts = session.shifts.filter(x=>x.id!=id);
+  renderPlan();
+  document.getElementById('sh-person').focus();
+  toast('Редагуй і натисни «Додати Шифт»');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function getEntries() {
+  if (!session?.entries) return [];
+  return Object.values(session.entries).sort((a,b) => a.time-b.time);
+}
+
+function fmtDur(ms) {
+  const h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000);
+  return h>0 ? `${h}г ${m}хв` : `${m}хв`;
+}
+
+function fmtTime(ts) {
+  return new Date(ts).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+}
+
+function fmtHM(mins) {
+  return `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;
+}
+
+function chimneyLabel(c) { return {none:'Нема',white:'Білий',black:'Чорний',flame:'Вогонь'}[c]||c; }
+function chimneyClass(c) { return {none:'ch-none',white:'ch-white',black:'ch-black',flame:'ch-flame'}[c]||''; }
+function woodTypeLabel(w)  { return {branches:'Гілки',oak:'Дуб',fruit:'Фруктові',dry_pine:'Сосна с.',fresh_pine:'Сосна св.'}[w]||w; }
+function woodAmountLabel(w){ return {handful:'Жменька',one:'Полешко',two:'2 пол.',three:'3 пол.'}[w]||w; }
+function stokingLabel(s)   { return {fire_door:'Вог.дверц.',bottom:'Нижня',top:'Верхня',side:'Сайдстоки'}[s]||s; }
+
+function getPlannedTempAt(elapsedMin) {
+  const curve = session?.plannedCurve;
+  if (!curve || curve.length < 2) return null;
+  if (elapsedMin <= curve[0].minutes) return curve[0].temp;
+  if (elapsedMin >= curve[curve.length-1].minutes) return curve[curve.length-1].temp;
+  for (let i=0; i<curve.length-1; i++) {
+    if (elapsedMin >= curve[i].minutes && elapsedMin <= curve[i+1].minutes) {
+      const t = (elapsedMin - curve[i].minutes) / (curve[i+1].minutes - curve[i].minutes);
+      return Math.round(curve[i].temp + t*(curve[i+1].temp - curve[i].temp));
+    }
+  }
+  return null;
+}
+
+function getCurrentShift() {
+  if (!session?.shifts?.length || !session.startTime) return null;
+  const elapsed = (Date.now() - session.startTime) / 60000;
+  return session.shifts.find(s => elapsed >= s.startMin && elapsed < s.endMin) || null;
+}
+
+function pick(field, val, btn) {
+  F[field] = val;
+  const grpMap = {chimney:'grp-chimney',woodType:'grp-woodtype',woodAmount:'grp-amount',stokingMethod:'grp-method'};
+  const grp = document.getElementById(grpMap[field]);
+  if (grp) grp.querySelectorAll('.grp-btn').forEach(b => b.classList.toggle('active', b.dataset.val===val));
+}
+
+// ── SCREENS ────────────────────────────────────────────────────────────────
+function showApp() {
+  document.getElementById('screen-home').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  const cv = document.getElementById('hdr-code-val');
+  if (cv) cv.textContent = session?.id || '——————';
+}
+
+function showTab(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  const sec = document.getElementById('tab-'+name);
+  if (sec) sec.classList.add('active');
+  const tabs = ['status','add','plan','chart','history'];
+  const idx = tabs.indexOf(name);
+  if (idx>=0) document.querySelectorAll('.tab')[idx].classList.add('active');
+  if (name==='chart') { setTimeout(drawCharts,50); }
+  if (name==='history') loadHistory();
+}
+
+function showModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+let _toastT;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastT);
+  _toastT = setTimeout(()=>el.classList.remove('show'), 2400);
+}
+
+function copyCode() {
+  if (!session) return;
+  const code = session.id;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(code).then(()=>toast('Код скопійовано: '+code));
+  } else {
+    toast('Код: '+code);
+  }
+}
+
+function saveSetup() {
+  const url = document.getElementById('setup-fb-url').value.trim().replace(/\/$/, '');
+  if (url) { CFG.fbUrl = url; localStorage.setItem(LS.fbUrl, url); }
+  closeModal('modal-setup');
+  updateFbStatusHome();
+  toast('Firebase збережено ✓');
+}
+
+function saveSettings() {
+  const url = document.getElementById('settings-fb-url').value.trim().replace(/\/$/, '');
+  if (url) { CFG.fbUrl = url; localStorage.setItem(LS.fbUrl, url); }
+  closeModal('modal-settings');
+  toast('Збережено');
+  if (session) startSync();
+}
+
+function updateFbStatusHome() {
+  const el = document.getElementById('fb-status-home');
+  if (!el) return;
+  if (CFG.fbUrl) {
+    el.className = 'fb-status ok';
+    el.innerHTML = '<div class="fb-status-dot" style="background:var(--green)"></div><span>Firebase налаштовано — синхронізація між телефонами активна</span>';
+  } else {
+    el.className = 'fb-status warn';
+    el.innerHTML = '<div class="fb-status-dot" style="background:var(--glow)"></div><span>Firebase не налаштовано — синхронізація між телефонами не працює. Натисни щоб налаштувати.</span>';
+  }
+}
+
+// ── RENDER: STATUS ──────────────────────────────────────────────────────────
+function renderAll() {
+  renderStatus();
+  renderAddFormVisibility();
+  renderPlan();
+  // chart & history rendered on tab open
+}
+
+function renderStatus() {
+  const el = document.getElementById('status-content');
+  if (!el) return;
+
+  if (!session || session.endTime) {
+    el.innerHTML = `
+      <div class="no-session">
+        <div class="ico">🔥</div>
+        <p>Немає активного випалу</p>
+        <button class="btn-primary" onclick="openNewSession()">Новий Випал</button>
+        <button class="btn-secondary" onclick="document.getElementById('join-code').focus();backToHome()">Приєднатись</button>
+      </div>`;
+    if (tickTimer) clearInterval(tickTimer);
+    return;
+  }
+
+  const entries = getEntries();
+  const last    = entries[entries.length-1];
+  const dur     = Date.now() - session.startTime;
+  const elMin   = dur/60000;
+  const planT   = getPlannedTempAt(elMin);
+  const shift   = getCurrentShift();
+
+  let devHtml = '';
+  if (planT !== null && last) {
+    const diff = last.temp - planT;
+    if (Math.abs(diff)<=15) devHtml = `<div class="deviation ok">✓ На плані (план: ${planT}°C)</div>`;
+    else if (diff>0) devHtml = `<div class="deviation above">▲ +${diff}° вище плану (план: ${planT}°C)</div>`;
+    else              devHtml = `<div class="deviation below">▼ ${diff}° нижче плану (план: ${planT}°C)</div>`;
+  }
+
+  const chC = {none:'var(--green)',white:'#ccc',black:'#888',flame:'var(--ember)'};
+
+  el.innerHTML = `
+    <div class="card">
+      <div class="session-meta">
+        <div class="s-name">${session.name}</div>
+        <span class="s-badge s-active">Активний</span>
+      </div>
+      ${last?.phase ? `<div class="phase-badge">${last.phase}</div>` : ''}
+      <div class="temp-display">
+        <div class="temp-big">${last ? last.temp : '—'}</div>
+        <div>
+          <div class="temp-unit">°C</div>
+          <div class="temp-zone">${last?.zone||''}</div>
+        </div>
+      </div>
+      ${devHtml}
+      ${last?.chimney ? `<div style="font-size:0.8rem;margin-bottom:8px">Труба: <span style="color:${chC[last.chimney]}">${chimneyLabel(last.chimney)}</span></div>` : ''}
+      ${last?.woodType ? `<div style="font-size:0.75rem;color:var(--smoke);margin-bottom:8px">${woodTypeLabel(last.woodType)} · ${woodAmountLabel(last.woodAmount)} · ${stokingLabel(last.stokingMethod)}</div>` : ''}
+      ${shift ? `<div class="shift-now"><span class="shift-label">Черговий</span><span class="shift-person">${shift.person}</span></div>` : ''}
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div class="timer" id="live-timer">${fmtDur(dur)}</div>
+        <div style="font-size:0.68rem;color:var(--smoke)">з ${new Date(session.startTime).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}</div>
+      </div>
+      <div class="divider"></div>
+      <button class="btn-secondary btn-danger" onclick="showModal('modal-end')">Завершити Випал</button>
+    </div>
+
+    ${entries.length>0 ? `
+      <div class="card">
+        <h2>Останні Записи</h2>
+        ${[...entries].reverse().slice(0,6).map(entryRow).join('')}
+      </div>` : ''}`;
+
+  // live timer
+  if (tickTimer) clearInterval(tickTimer);
+  tickTimer = setInterval(()=>{
+    const tEl = document.getElementById('live-timer');
+    if (tEl && session && !session.endTime) tEl.textContent = fmtDur(Date.now()-session.startTime);
+  }, 30000);
+}
+
+function entryRow(e) {
+  return `
+    <div class="log-entry">
+      <div class="log-time">${fmtTime(e.time)}</div>
+      <div class="log-content">
+        <div>
+          <span class="log-temp">${e.temp}°C</span>
+          <span class="log-badge ${chimneyClass(e.chimney)}">${chimneyLabel(e.chimney)}</span>
+        </div>
+        <div class="log-meta">${e.zone||''} · ${woodAmountLabel(e.woodAmount)} · ${stokingLabel(e.stokingMethod)}</div>
+        <div class="log-meta">${woodTypeLabel(e.woodType)}</div>
+        ${e.note ? `<div class="log-note">${e.note}</div>` : ''}
+        ${e.person ? `<div class="log-meta">— ${e.person}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function renderAddFormVisibility() {
+  const active = session && !session.endTime;
+  const nm = document.getElementById('no-session-msg');
+  const af = document.getElementById('add-form');
+  if (nm) nm.style.display = active ? 'none' : 'block';
+  if (af) af.style.display = active ? 'block' : 'none';
+}
+
+// ── RENDER: PLAN ────────────────────────────────────────────────────────────
+function renderPlan() {
+  renderParticipants();
+
+  // Curve
+  const cl = document.getElementById('plan-curve-list');
+  if (cl) {
+    const curve = session?.plannedCurve||[];
+    cl.innerHTML = curve.length ? curve.map((p,i)=>`
+      <div class="plan-row">
+        <div class="plan-time">${fmtHM(p.minutes)}</div>
+        <div class="plan-arrow">→</div>
+        <div class="plan-temp">${p.temp}°C</div>
+        <button class="del-btn" onclick="delPlanPoint(${i})">×</button>
+      </div>`).join('') : '<div class="empty-state" style="padding:12px">Немає точок</div>';
+  }
+
+  // Shifts
+  const sl = document.getElementById('plan-shifts-list');
+  if (sl) {
+    const shifts = session?.shifts||[];
+    sl.innerHTML = shifts.length ? shifts.map(s=>`
+      <div class="shift-row">
+        <div class="shift-range">${fmtHM(s.startMin)} — ${fmtHM(s.endMin)}</div>
+        <div class="shift-who">${s.person}</div>
+        <button class="del-btn" style="color:var(--clay);font-size:0.75rem;padding:3px 7px;border:1px solid rgba(201,132,90,.3);border-radius:5px;margin-right:4px" onclick="editShift(${s.id})">✎</button>
+        <button class="del-btn" onclick="delShift(${s.id})">×</button>
+      </div>`).join('') : '<div class="empty-state" style="padding:12px">Немає шифтів</div>';
+  }
+}
+
+// ── RENDER: HISTORY ─────────────────────────────────────────────────────────
+async function loadHistory() {
+  const el = document.getElementById('history-list');
+  if (!el) return;
+  el.innerHTML = '<div class="empty-state">Завантаження...</div>';
+
+  let sessions = [];
+
+  if (CFG.fbUrl) {
+    const all = await fbGet('sessions');
+    if (all) {
+      sessions = Object.values(all).filter(s=>s&&s.endTime).sort((a,b)=>b.startTime-a.startTime);
+    }
+  }
+
+  // Also include current session if ended
+  if (session?.endTime && !sessions.find(s=>s.id===session.id)) {
+    sessions.unshift(session);
+  }
+
+  if (sessions.length===0) {
+    el.innerHTML = '<div class="empty-state">Завершених випалів ще немає</div>';
+    return;
+  }
+
+  el.innerHTML = sessions.map(s=>{
+    const ents = s.entries ? Object.values(s.entries) : [];
+    const maxT = ents.length ? Math.max(...ents.map(e=>e.temp)) : 0;
+    const dur = fmtDur(s.endTime-s.startTime);
+    const heavy = ents.filter(e=>e.chimney==='black').length;
+    return `
+      <div class="hist-item" onclick="showDetail('${s.id}')">
+        <div class="hist-title">${s.name}</div>
+        <div class="hist-meta">${new Date(s.startTime).toLocaleDateString('uk-UA',{day:'numeric',month:'long',year:'numeric'})}</div>
+        <div class="hist-stats">
+          <div class="stat"><div class="stat-val">${maxT}°</div><div class="stat-lbl">Макс °C</div></div>
+          <div class="stat"><div class="stat-val">${dur}</div><div class="stat-lbl">Тривалість</div></div>
+          <div class="stat"><div class="stat-val">${ents.length}</div><div class="stat-lbl">Записів</div></div>
+          <div class="stat"><div class="stat-val" style="color:${heavy?'var(--red)':'var(--green)'}">${heavy}</div><div class="stat-lbl">Чорн. дим</div></div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+let currentDetailSession = null;
+
+async function showDetail(id) {
+  let s;
+  if (session?.id===id) { s=session; }
+  else if (CFG.fbUrl) { s = await fbGet(`sessions/${id}`); }
+  if (!s) return;
+  currentDetailSession = s;
+
+  const ents = s.entries ? Object.values(s.entries).sort((a,b)=>b.time-a.time) : [];
+  const maxT = ents.length ? Math.max(...ents.map(e=>e.temp)) : 0;
+  const clean = ents.filter(e=>e.chimney==='none').length;
+  const pct = ents.length ? Math.round(clean/ents.length*100) : 0;
+
+  document.getElementById('modal-detail-body').innerHTML = `
+    <div style="font-family:'Cinzel',serif;font-size:0.85rem;color:var(--clay);margin-bottom:4px">${s.name}</div>
+    <div style="font-size:0.75rem;color:var(--smoke);margin-bottom:14px;font-style:italic">${new Date(s.startTime).toLocaleDateString('uk-UA',{day:'numeric',month:'long',year:'numeric'})}</div>
+    <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+      <div class="stat"><div class="stat-val">${maxT}°</div><div class="stat-lbl">Макс °C</div></div>
+      <div class="stat"><div class="stat-val">${fmtDur(s.endTime-s.startTime)}</div><div class="stat-lbl">Час</div></div>
+      <div class="stat"><div class="stat-val" style="color:${pct>=80?'var(--green)':pct>=50?'var(--glow)':'var(--red)'}">${pct}%</div><div class="stat-lbl">Чисто</div></div>
+    </div>
+    <div style="max-height:300px;overflow-y:auto">
+      ${ents.map(e=>`
+        <div style="padding:7px 0;border-bottom:1px solid rgba(74,55,40,.4)">
+          <span style="color:var(--glow);font-family:'Cinzel',serif">${e.temp}°C</span>
+          <span class="log-badge ${chimneyClass(e.chimney)}">${chimneyLabel(e.chimney)}</span>
+          <div style="font-size:0.7rem;color:var(--smoke)">${fmtTime(e.time)} · ${e.phase||''} · ${woodTypeLabel(e.woodType)}</div>
+          ${e.note?`<div style="font-size:0.8rem;color:var(--blush);font-style:italic">${e.note}</div>`:''}
+        </div>`).join('')}
+    </div>`;
+  showModal('modal-detail');
+}
+
+// ── EXPORT: CSV ─────────────────────────────────────────────────────────────
+function exportCSV(s) {
+  if (!s) return;
+  const ents = s.entries ? Object.values(s.entries).sort((a,b)=>a.time-b.time) : [];
+  const BOM  = '\uFEFF';
+  const cols = ['Час','Темп °C','Зона','Дим з труби','Порода дров','Кількість','Метод підкидання','Черговий','Нотатка'];
+  const rows = ents.map(e=>[
+    new Date(e.time).toLocaleString('uk-UA'),
+    e.temp,
+    e.zone||'',
+    chimneyLabel(e.chimney||'none'),
+    woodTypeLabel(e.woodType||''),
+    woodAmountLabel(e.woodAmount||''),
+    stokingLabel(e.stokingMethod||''),
+    e.person||'',
+    (e.note||'').replace(/"/g,'""'),
+  ].map(v=>`"${v}"`).join(';'));
+
+  const csv  = BOM + [cols.join(';'), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `${(s.name||'випал').replace(/[^\wА-яа-яІіЄєЇїҐґ ]/g,'_')}_${new Date(s.startTime).toLocaleDateString('uk-UA').replace(/\./g,'-')}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('CSV завантажується...');
+}
+
+// ── EXPORT: PRINT ────────────────────────────────────────────────────────────
+function printSession(s) {
+  if (!s) return;
+  const ents  = s.entries ? Object.values(s.entries).sort((a,b)=>a.time-b.time) : [];
+  const maxT  = ents.length ? Math.max(...ents.map(e=>e.temp)) : '—';
+  const minT  = ents.length ? Math.min(...ents.map(e=>e.temp)) : '—';
+  const avgT  = ents.length ? Math.round(ents.reduce((a,e)=>a+e.temp,0)/ents.length) : '—';
+  const clean = ents.filter(e=>e.chimney==='none').length;
+  const pct   = ents.length ? Math.round(clean/ents.length*100) : 0;
+  const dur   = s.endTime ? fmtDur(s.endTime-s.startTime) : 'Активний';
+
+  const chColor = {none:'#2e7d5e',white:'#777',black:'#333',flame:'#c0392b'};
+
+  const rows = ents.map((e,i)=>`
+    <tr style="${i%2?'background:#fdf9f6':''}">
+      <td>${new Date(e.time).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}</td>
+      <td style="font-weight:bold;color:#c0392b">${e.temp}°C</td>
+      <td>${e.zone||''}</td>
+      <td style="color:${chColor[e.chimney||'none']}">${chimneyLabel(e.chimney||'none')}</td>
+      <td>${woodTypeLabel(e.woodType||'')}</td>
+      <td>${woodAmountLabel(e.woodAmount||'')}</td>
+      <td>${stokingLabel(e.stokingMethod||'')}</td>
+      <td>${e.person||''}</td>
+      <td style="font-style:italic;color:#888">${e.note||''}</td>
+    </tr>`).join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>${s.name} — Анагама</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Georgia,serif;max-width:960px;margin:0 auto;padding:24px;color:#333;font-size:14px}
+  h1{font-size:1.5rem;color:#8B4513;margin-bottom:4px;letter-spacing:0.05em}
+  .meta{color:#999;font-style:italic;margin-bottom:18px;font-size:0.85rem}
+  .stats{display:flex;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+  .stat{text-align:center;padding:10px 16px;border:1px solid #e0d4cc;border-radius:6px;min-width:90px}
+  .sv{font-size:1.35rem;font-weight:bold;color:#e85d04}
+  .sl{font-size:0.65rem;color:#aaa;text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
+  table{width:100%;border-collapse:collapse;font-size:0.82rem}
+  th{background:#8B4513;color:#fff;padding:7px 8px;text-align:left;font-weight:normal;font-size:0.75rem;letter-spacing:0.04em}
+  td{padding:5px 8px;border-bottom:1px solid #f0e8e0}
+  .no-print{margin-top:20px;display:flex;gap:10px}
+  .btn{padding:10px 22px;border:none;border-radius:6px;font-size:0.9rem;cursor:pointer}
+  .btn-print{background:#e85d04;color:#fff}
+  .btn-close{background:#eee;color:#333}
+  @media print{.no-print{display:none!important}body{padding:8px}}
+</style>
+</head>
+<body>
+<h1>🔥 ${s.name}</h1>
+<div class="meta">
+  ${new Date(s.startTime).toLocaleDateString('uk-UA',{day:'numeric',month:'long',year:'numeric'})}
+  &nbsp;·&nbsp; Початок: ${new Date(s.startTime).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}
+  ${s.endTime ? `&nbsp;·&nbsp; Кінець: ${new Date(s.endTime).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}` : ''}
+  &nbsp;·&nbsp; Тривалість: ${dur}
+</div>
+<div class="stats">
+  <div class="stat"><div class="sv">${maxT}°C</div><div class="sl">Максимум</div></div>
+  <div class="stat"><div class="sv">${avgT}°C</div><div class="sl">Середня</div></div>
+  <div class="stat"><div class="sv">${minT}°C</div><div class="sl">Мінімум</div></div>
+  <div class="stat"><div class="sv" style="color:${pct>=80?'#2e7d5e':pct>=50?'#e85d04':'#c0392b'}">${pct}%</div><div class="sl">Чисте горіння</div></div>
+  <div class="stat"><div class="sv">${ents.length}</div><div class="sl">Записів</div></div>
+</div>
+<table>
+  <thead><tr>
+    <th>Час</th><th>°C</th><th>Зона</th><th>Дим</th>
+    <th>Порода</th><th>Кількість</th><th>Метод</th><th>Черговий</th><th>Нотатка</th>
+  </tr></thead>
+  <tbody>${rows}</tbody>
+</table>
+<div class="no-print">
+  <button class="btn btn-print" onclick="window.print()">🖨️ Друкувати / Зберегти PDF</button>
+  <button class="btn btn-close" onclick="window.close()">Закрити</button>
+</div>
+</body></html>`;
+
+  const w = window.open('','_blank','width=1000,height=700');
+  if (!w) { toast('Дозволь спливаючі вікна в браузері'); return; }
+  w.document.write(html);
+  w.document.close();
+}
+
+// ── CHARTS ──────────────────────────────────────────────────────────────────
+function drawCharts() {
+  drawTempChart();
+  drawChimneyChart();
+  drawWoodChart();
+  drawStats();
+}
+
+function drawTempChart() {
+  const canvas = document.getElementById('tempChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 300;
+  const H = 220;
+  canvas.width  = W * window.devicePixelRatio;
+  canvas.height = H * window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  ctx.clearRect(0,0,W,H);
+
+  const entries = getEntries();
+  const curve   = session?.plannedCurve||[];
+  const st      = session?.startTime||Date.now();
+
+  if (entries.length<1 && curve.length<2) {
+    ctx.fillStyle='#4a3728'; ctx.font='13px serif'; ctx.textAlign='center';
+    ctx.fillText('Недостатньо даних', W/2, H/2); return;
+  }
+
+  let maxMin = 60;
+  if (entries.length) maxMin = Math.max(maxMin, (entries[entries.length-1].time-st)/60000+20);
+  if (curve.length)   maxMin = Math.max(maxMin, curve[curve.length-1].minutes+20);
+
+  const allT = [...entries.map(e=>e.temp), ...curve.map(p=>p.temp)];
+  if (!allT.length) return;
+  const minT = Math.max(0, Math.min(...allT)-50);
+  const maxT = Math.max(...allT)+50;
+
+  const pad = {top:18, right:14, bottom:28, left:38};
+  const xS = m => pad.left + (m/maxMin)*(W-pad.left-pad.right);
+  const yS = t => pad.top  + (1-(t-minT)/(maxT-minT))*(H-pad.top-pad.bottom);
+
+  // Grid
+  ctx.strokeStyle='rgba(74,55,40,.4)'; ctx.lineWidth=0.5;
+  [200,400,600,800,1000,1200].forEach(t=>{
+    if (t<minT||t>maxT) return;
+    const y=yS(t);
+    ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(W-pad.right,y); ctx.stroke();
+    ctx.fillStyle='#4a3728'; ctx.font='9px serif'; ctx.textAlign='right';
+    ctx.fillText(t+'°', pad.left-3, y+3);
+  });
+
+  // Planned curve (dashed grey)
+  if (curve.length>=2) {
+    ctx.save(); ctx.setLineDash([4,4]);
+    ctx.strokeStyle='rgba(180,180,180,.45)'; ctx.lineWidth=1.5;
+    ctx.beginPath();
+    curve.forEach((p,i)=>{ const x=xS(p.minutes),y=yS(p.temp); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.stroke(); ctx.restore();
+  }
+
+  // Actual line
+  if (entries.length>=2) {
+    ctx.strokeStyle='#e85d04'; ctx.lineWidth=2; ctx.lineJoin='round';
+    ctx.beginPath();
+    entries.forEach((e,i)=>{
+      const x=xS((e.time-st)/60000), y=yS(e.temp);
+      i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+    }); ctx.stroke();
+  }
+
+  // Dots
+  const dc={none:'#4caf7d',white:'#dddddd',black:'#888888',flame:'#e85d04'};
+  entries.forEach(e=>{
+    const x=xS((e.time-st)/60000), y=yS(e.temp);
+    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
+    ctx.fillStyle=dc[e.chimney]||'#fff'; ctx.fill();
+  });
+
+  // X axis labels
+  ctx.fillStyle='#4a3728'; ctx.font='8px serif'; ctx.textAlign='center';
+  const xTicks = [0,.25,.5,.75,1].map(f=>Math.round(f*maxMin));
+  xTicks.forEach(m=>ctx.fillText(fmtHM(m), xS(m), H-4));
+}
+
+function drawChimneyChart() {
+  const canvas = document.getElementById('chimneyChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth||300, H=150;
+  canvas.width=W*window.devicePixelRatio; canvas.height=H*window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  ctx.clearRect(0,0,W,H);
+
+  const ents = getEntries();
+  if (!ents.length) {
+    ctx.fillStyle='#4a3728'; ctx.font='13px serif'; ctx.textAlign='center';
+    ctx.fillText('Немає даних', W/2, H/2); return;
+  }
+
+  const bars=[
+    {key:'none', label:'Нема',   color:'#4caf7d'},
+    {key:'white',label:'Білий',  color:'#cccccc'},
+    {key:'black',label:'Чорний', color:'#888888'},
+    {key:'flame',label:'Вогонь', color:'#e85d04'},
+  ];
+  bars.forEach(b=>b.val=ents.filter(e=>e.chimney===b.key).length);
+  const total=ents.length, maxV=Math.max(...bars.map(b=>b.val),1);
+  const bw=(W-60)/4;
+
+  bars.forEach((b,i)=>{
+    const x=30+i*bw+bw*.1, w=bw*.8;
+    const bh=(b.val/maxV)*(H-44), y=H-28-bh;
+    ctx.fillStyle=b.color+'33'; ctx.fillRect(x,y,w,bh);
+    ctx.strokeStyle=b.color; ctx.lineWidth=1.5; ctx.strokeRect(x,y,w,bh);
+    ctx.fillStyle=b.color; ctx.font='bold 13px serif'; ctx.textAlign='center';
+    ctx.fillText(b.val, x+w/2, y-4);
+    ctx.fillStyle='#4a3728'; ctx.font='9px serif';
+    ctx.fillText(b.label, x+w/2, H-14);
+    ctx.fillText(total?Math.round(b.val/total*100)+'%':'—', x+w/2, H-3);
+  });
+}
+
+function drawWoodChart() {
+  const canvas = document.getElementById('woodChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=canvas.offsetWidth||300, H=130;
+  canvas.width=W*window.devicePixelRatio; canvas.height=H*window.devicePixelRatio;
+  ctx.scale(window.devicePixelRatio,window.devicePixelRatio);
+  ctx.clearRect(0,0,W,H);
+
+  const ents=getEntries();
+  if (!ents.length) return;
+
+  const types=[
+    {key:'branches', label:'Гілки',  color:'#8bc34a'},
+    {key:'oak',      label:'Дуб',    color:'#c9845a'},
+    {key:'fruit',    label:'Фрукт.', color:'#f06292'},
+    {key:'dry_pine', label:'С.суха', color:'#ffd54f'},
+    {key:'fresh_pine',label:'С.св.', color:'#80cbc4'},
+  ];
+  types.forEach(t=>t.val=ents.filter(e=>e.woodType===t.key).length);
+  const maxV=Math.max(...types.map(t=>t.val),1);
+  const bw=(W-40)/5;
+
+  types.forEach((t,i)=>{
+    const x=20+i*bw+bw*.1, w=bw*.8;
+    const bh=(t.val/maxV)*(H-40), y=H-26-bh;
+    ctx.fillStyle=t.color+'33'; ctx.fillRect(x,y,w,bh);
+    ctx.strokeStyle=t.color; ctx.lineWidth=1.5; ctx.strokeRect(x,y,w,bh);
+    ctx.fillStyle=t.color; ctx.font='bold 12px serif'; ctx.textAlign='center';
+    if (t.val>0) ctx.fillText(t.val, x+w/2, y-3);
+    ctx.fillStyle='#4a3728'; ctx.font='8.5px serif';
+    ctx.fillText(t.label, x+w/2, H-12);
+  });
+}
+
+function drawStats() {
+  const el=document.getElementById('chart-stats');
+  if (!el||!session) { if(el) el.innerHTML=''; return; }
+  const ents=getEntries();
+  if (!ents.length) { el.innerHTML=''; return; }
+  const temps=ents.map(e=>e.temp);
+  const avg=Math.round(temps.reduce((a,b)=>a+b,0)/temps.length);
+  const max=Math.max(...temps);
+  const clean=ents.filter(e=>e.chimney==='none').length;
+  const pct=Math.round(clean/ents.length*100);
+  el.innerHTML=`
+    <div class="card" style="display:flex;gap:0;padding:12px">
+      <div class="stat" style="flex:1"><div class="stat-val">${avg}°</div><div class="stat-lbl">Середня</div></div>
+      <div class="stat" style="flex:1"><div class="stat-val">${max}°</div><div class="stat-lbl">Максимум</div></div>
+      <div class="stat" style="flex:1"><div class="stat-val" style="color:${pct>=80?'var(--green)':pct>=50?'var(--glow)':'var(--red)'}">${pct}%</div><div class="stat-lbl">Чисто</div></div>
+      <div class="stat" style="flex:1"><div class="stat-val">${ents.length}</div><div class="stat-lbl">Записів</div></div>
+    </div>`;
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+(async function init() {
+  // Pre-fill settings inputs + show Firebase status
+  updateFbStatusHome();
+  if (CFG.fbUrl) {
+    const si = document.getElementById('settings-fb-url');
+    if (si) si.value = CFG.fbUrl;
+    const su = document.getElementById('setup-fb-url');
+    if (su) su.value = CFG.fbUrl;
+  }
+
+  // 1) Try restoring from localStorage (instant, works offline)
+  const localData = localStorage.getItem('anagama_session_data');
+  const lastId    = localStorage.getItem(LS.sessId);
+  if (localData && lastId) {
+    try {
+      const parsed = JSON.parse(localData);
+      if (parsed && parsed.id === lastId && !parsed.endTime) {
+        session = parsed;
+        showApp();
+        renderAll();
+        // 2) Then try to sync with Firebase in background
+        if (CFG.fbUrl) {
+          startSync();
+          pullSession(); // silent background pull
+        }
+        return;
+      }
+    } catch(e) {}
+  }
+
+  // 3) No local data — try Firebase directly
+  if (lastId && CFG.fbUrl) {
+    setSyncDot('syncing');
+    const data = await fbGet(`sessions/${lastId}`);
+    if (data && !data.endTime) {
+      session = data;
+      lastHash = JSON.stringify(data);
+      localStorage.setItem('anagama_session_data', JSON.stringify(data));
+      showApp();
+      renderAll();
+      startSync();
+      setSyncDot('online');
+      return;
+    }
+  }
+
+  // Show home screen
+  document.getElementById('screen-home').classList.add('active');
+})();
+</script>
+</body>
+</html>
