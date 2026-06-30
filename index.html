@@ -549,14 +549,16 @@ canvas { width:100% !important; display:block; }
     <div class="home-tagline">Журнал Випалу · Kiln Log</div>
 
     <div class="home-card">
-      <button class="btn-primary" onclick="openNewSession()">Створити Новий Випал</button>
-
-      <div class="home-or"><span>або</span></div>
+      <div style="font-size:0.72rem;color:var(--smoke);text-align:center;margin-bottom:12px;line-height:1.55">Учасник — введи код від організатора.<br>Організатор — створи випал.</div>
 
       <div class="join-row">
         <input id="join-code" type="text" placeholder="Код сесії (напр. KB4MXZ)" maxlength="6">
         <button class="btn-sm primary" style="height:47px;white-space:nowrap" onclick="joinSession()">Увійти</button>
       </div>
+
+      <div class="home-or"><span>або</span></div>
+
+      <button class="btn-secondary" onclick="openNewSession()" style="font-size:0.8rem">Створити новий випал · організатор</button>
 
       <div id="fb-status-home" class="fb-status warn" onclick="showModal('modal-setup')">
         <div class="fb-status-dot" style="background:var(--glow)"></div>
@@ -579,8 +581,10 @@ canvas { width:100% !important; display:block; }
       <div class="hdr-code" onclick="copyCode()">
         Код: <span id="hdr-code-val" class="cv">——————</span>
       </div>
+      <div id="guest-badge" class="guest-only" style="display:none;font-size:0.58rem;color:var(--blush);font-family:'Cinzel',serif;letter-spacing:0.04em;margin-top:2px">👤 Гостьовий режим</div>
     </div>
     <div class="hdr-right">
+      <button class="icon-btn" id="lang-btn" onclick="toggleLang()" title="Мова / Language" style="font-family:'Cinzel',serif;font-size:0.62rem;letter-spacing:0.05em;width:auto;padding:0 9px">ENG</button>
       <div id="sync-dot" class="sync-dot"></div>
       <button class="icon-btn" onclick="showModal('modal-settings')" title="Налаштування">⚙️</button>
       <button class="icon-btn" onclick="backToHome()" title="Вийти">←</button>
@@ -590,6 +594,7 @@ canvas { width:100% !important; display:block; }
   <div class="tabs" id="main-tabs">
     <button class="tab active" data-tab="status"  onclick="showTab('status')">🔥 Стан</button>
     <button class="tab"        data-tab="add"     onclick="showTab('add')">✏️ Запис</button>
+    <button class="tab"        data-tab="color"   onclick="showTab('color')">🔴 Колір</button>
     <button class="tab"        data-tab="shift"   onclick="showTab('shift')">👥 Шифт</button>
     <button class="tab admin-only" data-tab="plan" onclick="showTab('plan')" style="display:none">📋 План</button>
     <button class="tab"        data-tab="chart"   onclick="showTab('chart')">📈 Графік</button>
@@ -606,30 +611,37 @@ canvas { width:100% !important; display:block; }
     <div id="status-content"></div>
   </div>
 
+  <!-- ── ТАБ: КОЛІР ───────────────────────────────────── -->
+  <div id="tab-color" class="section">
+    <div id="color-content"></div>
+  </div>
+
   <!-- ── ТАБ: ЗАПИС ───────────────────────────────────── -->
   <div id="tab-add" class="section">
     <div id="no-session-msg" class="no-session" style="display:none">
       <div class="ico">🏺</div>
       <p>Немає активного випалу</p>
-      <button class="btn-primary" onclick="openNewSession()">Почати Новий Випал</button>
+      <button class="btn-primary admin-only" onclick="openNewSession()">Почати Новий Випал</button>
+      <div class="guest-only" style="display:none;font-size:0.74rem;color:var(--smoke);line-height:1.5;max-width:260px">Новий випал створює організатор. Введи код на головному екрані, щоб приєднатися.</div>
     </div>
 
     <div id="add-form">
       <div class="card">
         <div class="inp-row">
           <div class="inp-grp">
-            <label>Топка °C</label>
+            <label>Топка °C · Firebox</label>
             <input type="number" id="inp-temp" placeholder="850" min="0" max="1560" inputmode="numeric">
           </div>
           <div class="inp-grp">
-            <label>Камера °C</label>
+            <label>Камера °C · Chamber</label>
             <input type="number" id="inp-temp-chamber" placeholder="—" min="0" max="1560" inputmode="numeric">
           </div>
         </div>
 
-        <div class="inp-grp" style="max-width:140px">
-          <label>Оксипроб %</label>
-          <input type="number" id="inp-oxy" placeholder="—" inputmode="decimal" step="0.1" min="0" max="25">
+        <div class="inp-grp" style="max-width:200px">
+          <label>Лямбда (В) · Lambda V</label>
+          <input type="number" id="inp-oxy" placeholder="0.55" inputmode="decimal" step="0.01" min="0" max="2">
+          <div style="font-size:0.6rem;opacity:0.6;margin-top:3px;line-height:1.4">≥0.60 відновл. · 0.45–0.60 перех. · &lt;0.45 окисн.</div>
         </div>
 
         <span class="grp-label">Труба — стан диму</span>
@@ -702,7 +714,7 @@ canvas { width:100% !important; display:block; }
     <div class="card">
       <h2>Планова Крива Температури</h2>
       <button class="btn-secondary" onclick="openRyeModal()" style="margin-bottom:10px;font-size:0.68rem">
-        📋 Завантажити протокол Рая
+        📋 Протокол рум'янцю · Flashing
       </button>
       <div id="plan-curve-list"></div>
 
@@ -881,27 +893,27 @@ canvas { width:100% !important; display:block; }
   </div>
 </div>
 
-<!-- Rye Protocol -->
+<!-- Rum'yanets protocol -->
 <div id="modal-rye" class="modal">
   <div class="modal-box">
-    <div class="modal-title">Протокол Рая</div>
+    <div class="modal-title">Протокол рум'янцю · Flashing</div>
     <div class="modal-text" style="font-size:0.8rem;line-height:1.6">
-      Автоматично заповнить планову криву за протоколом Owen Rye для отримання <em>помаранчевого flashing</em>.<br>
-      <span style="font-size:0.72rem;opacity:0.7">Поточні точки кривої будуть замінені.</span>
+      Заповнить планову криву під <em>вогневий рум'янець</em>: вікно заліза 700–900 °C, пік, відновне охолодження та окиснювальна витримка 900→800 °C (4 год).<br>
+      <span style="font-size:0.72rem;opacity:0.7">Поточні точки кривої буде замінено · current curve points will be replaced.</span>
     </div>
     <div class="inp-grp">
-      <label>Старт відліку — год від початку випалу</label>
+      <label>Старт відліку — год від початку · start offset (h)</label>
       <input id="rye-start-h" type="number" placeholder="0" min="0" step="0.5" inputmode="decimal">
     </div>
     <div class="inp-grp">
-      <label>Цільовий пік °C (Cone 10)</label>
+      <label>Цільовий пік °C (Cone 10 ≈ 1280)</label>
       <input id="rye-peak" type="number" placeholder="1280" value="1280" min="1200" max="1350" inputmode="numeric">
     </div>
     <div style="font-size:0.72rem;color:var(--smoke);font-style:italic;margin-bottom:14px;line-height:1.7">
-      Додасть 9 точок: 900°C → 1050 → 1200 → пік → витримка → 1100 → 900 → 850 → 800°C (запечатування)
+      200 → 700 → 900 → пік → витримка → 1100 → 900 → 800 (4 год) → запечатування
     </div>
-    <button onclick="confirmRyeProtocol()" class="btn-primary">Завантажити</button>
-    <button onclick="closeModal('modal-rye')" class="btn-secondary">Скасувати</button>
+    <button onclick="confirmRyeProtocol()" class="btn-primary">Завантажити · Load</button>
+    <button onclick="closeModal('modal-rye')" class="btn-secondary">Скасувати · Cancel</button>
   </div>
 </div>
 
@@ -911,67 +923,243 @@ canvas { width:100% !important; display:block; }
      JAVASCRIPT
 ══════════════════════════════════════════════════════════ -->
 <script>
-// ── PHASES (Rye protocol) ──────────────────────────────────────────────────
+// ── i18n ────────────────────────────────────────────────────────────────────
+let LANG = localStorage.getItem('anagama_lang') || 'uk';
+function t(o){ if(o==null) return ''; if(typeof o==='string') return o; return o[LANG]!=null ? o[LANG] : (o.uk!=null?o.uk:(o.en!=null?o.en:'')); }
+function setLang(l){ LANG=l; localStorage.setItem('anagama_lang',l); applyLang(); renderAll(); if(typeof renderColor==='function') renderColor(); if(document.getElementById('tab-chart')&&document.getElementById('tab-chart').classList.contains('active')) drawCharts(); }
+function toggleLang(){ setLang(LANG==='uk'?'en':'uk'); }
+
+const TAB_LABELS = {
+  status:{uk:"🔥 Стан",en:"🔥 Status"}, add:{uk:"✏️ Запис",en:"✏️ Log"},
+  color:{uk:"🔴 Колір",en:"🔴 Colour"}, shift:{uk:"👥 Шифт",en:"👥 Shift"},
+  plan:{uk:"📋 План",en:"📋 Plan"}, chart:{uk:"📈 Графік",en:"📈 Chart"},
+  history:{uk:"📚 Архів",en:"📚 Log book"},
+};
+function applyLang(){
+  const lb = document.getElementById('lang-btn');
+  if (lb) lb.textContent = (LANG==='uk' ? 'ENG' : 'УКР');
+  document.querySelectorAll('.tab[data-tab]').forEach(b=>{
+    const k = b.getAttribute('data-tab');
+    if (TAB_LABELS[k]) b.textContent = t(TAB_LABELS[k]);
+  });
+  const gb = document.getElementById('guest-badge');
+  if (gb) gb.textContent = t({uk:'👤 Гостьовий режим', en:'👤 Guest mode'});
+}
+function fmtHold(ms){ const h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000); return h + ':' + String(m).padStart(2,'0'); }
+
+function renderColor(){
+  const el = document.getElementById('color-content');
+  if (!el) return;
+  const T = (u,e)=>t({uk:u,en:e});
+  el.innerHTML = `
+    <div class="card">
+      <div style="font-family:'Cinzel',serif;letter-spacing:.05em;color:var(--clay);font-size:1.05rem;margin-bottom:4px">🔴 ${T('Вогневий рум’янець','Flashing')} <span style="opacity:.6;font-size:.8rem">· hi-iro 火色</span></div>
+      <div style="font-size:.85rem;line-height:1.6">${T(
+        'Колір — це власне залізо глини, не глазур. Рожево-червоне народжується на охолодженні: спершу відновлення на піку, потім повторне окиснення близько 900→800 °C. Це «зворотний strike».',
+        'The colour is the clay’s own iron, not a glaze. Pink-red is born on cooling: reduction at peak, then re-oxidation around 900→800 °C — the “reverse strike”.')}</div>
+    </div>
+
+    <div class="card">
+      <h2>${T('Три ключі','Three keys')}</h2>
+      <div style="font-size:.85rem;line-height:1.7">
+        <div><b>1.</b> ${T('Залізо в глині / ангобі (Fe₂O₃).','Iron in the clay / slip (Fe₂O₃).')}</div>
+        <div><b>2.</b> ${T('Відновлення на піку — зробити залізо рухливим.','Reduction at peak — make the iron mobile.')}</div>
+        <div><b>3.</b> ${T('Повторне окиснення на охолодженні 900→800 °C — «запалити» рожевий.','Re-oxidation on cooling 900→800 °C — “ignite” the pink.')}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>${T('Два вікна','Two windows')}</h2>
+      <div style="font-size:.85rem;line-height:1.7">
+        <div style="margin-bottom:8px"><span style="color:#3cc6ff;font-weight:700">↑ 700–900 °C ${T('(підйом)','(climb)')}</span><br>${T('ЧИСТЕ ОКИСНЕННЯ. Тут закладається колір — тримай залізо як Fe₂O₃.','CLEAN OXIDATION. Colour is set here — keep iron as Fe₂O₃.')}</div>
+        <div><span style="color:#3cc6ff;font-weight:700">↓ 900→800 °C ${T('(охолодження, ≥4 год)','(cooling, ≥4 h)')}</span><br>${T('ОКИСНЕННЯ. Серце кольору — зворотний strike, мінімум 4 години.','OXIDATION. Heart of colour — reverse strike, at least 4 hours.')}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>${T('Шкала лямбда-зонда','Lambda probe scale')}</h2>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:.82rem">
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:12px;height:12px;border-radius:50%;background:#ff5a3c;box-shadow:0 0 7px #ff5a3c"></span><b>≥ 0.60 В</b> — ${T('відновлення','reduction')}</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:12px;height:12px;border-radius:50%;background:#ffc63c;box-shadow:0 0 7px #ffc63c"></span><b>0.45–0.60 В</b> — ${T('перехід','transition')}</div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="width:12px;height:12px;border-radius:50%;background:#3cc6ff;box-shadow:0 0 7px #3cc6ff"></span><b>&lt; 0.45 В</b> — ${T('окиснення','oxidation')}</div>
+      </div>
+      <div style="font-size:.7rem;color:var(--smoke);margin-top:7px">${T('Ті самі пороги, що в дашборді біля печі.','Same thresholds as the kiln-side dashboard.')}</div>
+    </div>
+
+    <div class="card">
+      <h2>${T('Контрольний список','Checklist')}</h2>
+      <div style="font-size:.82rem;line-height:1.8">
+        <div>☐ ${T('700–900 °C — окиснення (зонд < 0.45 В)','700–900 °C — oxidation (probe < 0.45 V)')}</div>
+        <div>☐ ${T('Пік 1250–1300 °C топка, не вище 1350','Peak 1250–1300 °C firebox, not above 1350')}</div>
+        <div>☐ ${T('IVa — спершу перекрити трубу, тоді важке відновлення','IVa — close chimney first, then heavy reduction')}</div>
+        <div>☐ ${T('IVb — окиснення 900→800, мінімум 4 год','IVb — oxidation 900→800, at least 4 h')}</div>
+        <div>☐ ${T('Агент відновлення повністю прогорів перед запечатуванням','Reduction agent fully burnt before sealing')}</div>
+        <div>☐ ${T('Запечатати < 800 °C (~13 см², не герметично)','Seal < 800 °C (~13 cm², not airtight)')}</div>
+        <div>☐ ${T('~573 °C — не відкривати','~573 °C — do not open')}</div>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:rgba(232,93,4,.35)">
+      <h2>${T('Якщо вийшло тьмяно','If it came out dull')}</h2>
+      <div style="font-size:.82rem;line-height:1.6">${T(
+        'Перепалити в окисненні до конуса 04 (≈1060 °C) — повторне окиснення може витягнути рум’янець.',
+        'Refire in oxidation to cone 04 (≈1060 °C) — re-oxidation can pull the blush back.')}</div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:.74rem;color:var(--smoke);line-height:1.6">${T(
+        'Завантаження: став вироби там, де їх омиває полум’я, але не накопичується важкий попіл; контактні ефекти — мушлі / прокладки.',
+        'Loading: place ware where flame washes it but heavy ash does not pile up; contact effects via shells / wadding.')}</div>
+    </div>`;
+}
+
+// ── ATMOSPHERE (lambda probe, volts) ────────────────────────────────────────
+// Thresholds MIRROR anagama_dashboard.py -> atm_state():
+//   >= 0.60 V reduction | 0.45–0.60 V transition | < 0.45 V oxidation
+const ATM = {
+  reduction:  { uk:"Відновлення", en:"Reduction",  color:"#ff5a3c" },
+  transition: { uk:"Перехід",     en:"Transition", color:"#ffc63c" },
+  oxidation:  { uk:"Окиснення",   en:"Oxidation",  color:"#3cc6ff" },
+  neutral:    { uk:"Нейтральна",  en:"Neutral",    color:"#c9845a" },
+  sealed:     { uk:"Запечатано",  en:"Sealed",     color:"#9a8a7a" },
+};
+function atmFromVolts(v){
+  if (v==null || isNaN(v)) return null;
+  if (v >= 0.60) return 'reduction';
+  if (v >= 0.45) return 'transition';
+  return 'oxidation';
+}
+
+// ── PHASES (вогневий рум'янець / flashing protocol) ──────────────────────────
 const PHASES = [
-  { num:1, name:'Розгін',
-    fuel:'суха сосна (рейки)',
-    atmosphere:'природне чергування',
-    method:'вогняні дверцята',
-    hint:'Бездимна техніка — мінімальне тління, максимальний вогонь' },
-  { num:2, name:'Головний підйом',
-    fuel:'сухий дуб + фруктові',
-    atmosphere:'ВІДНОВНА — починаємо і підтримуємо',
-    method:'верхні дверцята / класичне',
-    hint:'Відновлення: чорний дим + вогонь з труби' },
-  { num:3, name:'Фінальний підйом',
-    fuel:'фруктові + дуб',
-    atmosphere:'ВІДНОВНА — підтримувати',
-    method:'верхні дверцята',
-    hint:'Cone 10 (~1280°C) — оптимум за Раєм' },
-  { num:4, name:'Витримка на піку',
-    fuel:'фруктові — мінімум',
-    atmosphere:'ВІДНОВНА — підтримувати на піку!',
-    method:'верхні дверцята',
-    hint:'Тримати 1–2 год. Відновлення обов\'язкове навіть на піку' },
-  { num:5, name:'Відновлювальне охолодження (Rye)',
-    fuel:'зелене дерево — зрізати і одразу',
-    atmosphere:'ВІДНОВНА стійка — труба прикрита',
-    method:'будь-який',
-    hint:'Якщо відновлення спадає → вода або зелене дерево. ⚠️ Вугілля = попіл перед запечатуванням' },
-  { num:6, name:'Перехід в окислення (Rye)',
-    fuel:'мінімум або нічого',
-    atmosphere:'ОКИСНА — відкрити тягу',
-    method:'—',
-    hint:'Піч сама починає окислюватись. Якщо температура росте → вода' },
-  { num:7, name:'Цикли для ефектів',
-    fuel:'свіжа гілка → окисна пауза',
-    atmosphere:'цикли: відновлення ↔ окислення',
-    method:'сайдстоки або верхня',
-    hint:'Непарна кількість циклів (3, 5, 7). Перший і останній — окисний' },
-  { num:8, name:'Фінальне окислення',
-    fuel:'сухе дерево, чисте догоряння',
-    atmosphere:'ОКИСНА',
-    method:'вогняні дверцята',
-    hint:'⚠️ Вугілля = попіл перед запечатуванням' },
-  { num:9, name:'Запечатування',
-    fuel:'—',
-    atmosphere:'запечатано',
-    method:'—',
-    hint:'Отвір ~13 см² (Rye) — НЕ герметично' },
+  { num:1, code:'PRE',
+    name:{uk:"Передгрів", en:"Pre-heat (bassinage)"},
+    band:{uk:"до ~200 °C", en:"up to ~200 °C"},
+    fuel:{uk:"дрібні гілки, малий вогонь", en:"small branches, low fire"},
+    targetAtm:'neutral',
+    atmosphere:{uk:"природна, малий вогонь", en:"natural, low fire"},
+    method:{uk:"вогняні дверцята", en:"firebox door"},
+    hint:{uk:"Довго й повільно — гнати вологу з виробів і кладки. Поспіх = тріщини.",
+          en:"Long and slow — drive moisture from ware and brick. Haste = cracks."} },
+
+  { num:2, code:'RISE',
+    name:{uk:"Підйом", en:"Climb"},
+    band:{uk:"~200–700 °C", en:"~200–700 °C"},
+    fuel:{uk:"суха сосна (рейки), дуб", en:"dry pine (laths), oak"},
+    targetAtm:'neutral',
+    atmosphere:{uk:"легка / природна, ритмічні цикли", en:"light / natural, rhythmic cycles"},
+    method:{uk:"вогняні дверцята", en:"firebox door"},
+    hint:{uk:"Ритм: закид → западина → прогар до жару → підйом t.",
+          en:"Rhythm: stoke → dip → burn to embers → temperature up."} },
+
+  { num:3, code:'FE_WINDOW',
+    name:{uk:"Вікно заліза 700–900 °C ⭐", en:"Iron window 700–900 °C ⭐"},
+    band:{uk:"700–900 °C ⭐", en:"700–900 °C ⭐"},
+    fuel:{uk:"суха деревина", en:"dry wood"},
+    targetAtm:'oxidation',
+    atmosphere:{uk:"ЧИСТЕ / легке ОКИСНЕННЯ", en:"CLEAN / light OXIDATION"},
+    method:{uk:"вогняні дверцята", en:"firebox door"},
+    hint:{uk:"⭐ Тут закладається колір. Тримай ОКИСНЕННЯ (зонд < 0.45 В), щоб залізо лишилось Fe₂O₃. Підеш у відновлення — червоного вже не повернути.",
+          en:"⭐ Colour is set here. Hold OXIDATION (probe < 0.45 V) so iron stays Fe₂O₃. Reduce now and the red is gone."},
+    critical:true },
+
+  { num:4, code:'RISE_PEAK',
+    name:{uk:"Підйом до піку", en:"Climb to peak"},
+    band:{uk:"900 °C → пік", en:"900 °C → peak"},
+    fuel:{uk:"дуб + фруктові", en:"oak + fruitwood"},
+    targetAtm:'transition',
+    atmosphere:{uk:"можна легке відновлення", en:"light reduction allowed"},
+    method:{uk:"верхні дверцята", en:"upper ports"},
+    hint:{uk:"Вище 900 °C можна вводити легкі цикли відновлення — без фанатизму.",
+          en:"Above 900 °C light reduction cycles are fine — without fanaticism."} },
+
+  { num:5, code:'PEAK',
+    name:{uk:"Пік + витримка", en:"Peak + soak"},
+    band:{uk:"топка 1250–1300 · камера 1200–1250 (стеля 1350!)", en:"firebox 1250–1300 · chamber 1200–1250 (ceiling 1350!)"},
+    fuel:{uk:"фруктові + дуб; на витримці — мінімум", en:"fruitwood + oak; minimal on soak"},
+    targetAtm:'reduction',
+    atmosphere:{uk:"ВПЕВНЕНЕ ВІДНОВЛЕННЯ", en:"confident REDUCTION"},
+    method:{uk:"верхні дверцята", en:"upper ports"},
+    hint:{uk:"Конус 10 (≈1280 °C). НЕ перевищувати топку 1350 °C. Коротка витримка; відновлення наприкінці, щоб залізо біля поверхні було рухливим і не сховалось у муліт.",
+          en:"Cone 10 (≈1280 °C). Do NOT exceed 1350 °C firebox. Short soak; reduce at the end so surface iron stays mobile and out of mullite."} },
+
+  { num:6, code:'COOL_RED',
+    name:{uk:"IVa · Відновне охолодження ⭐", en:"IVa · Reduction cooling ⭐"},
+    band:{uk:"1100 → 900 °C", en:"1100 → 900 °C"},
+    fuel:{uk:"повільне дерево / зелень", en:"slow wood / green vegetation"},
+    targetAtm:'reduction',
+    atmosphere:{uk:"ВАЖКЕ ВІДНОВЛЕННЯ", en:"heavy REDUCTION"},
+    method:{uk:"набивати топку", en:"pack the firebox"},
+    hint:{uk:"⚠️ СПОЧАТКУ ПЕРЕКРИЙ ТРУБУ, тоді відновлюй — інакше протяг занесе холодне повітря й осадить чорний вуглець. Тримай зонд ≥ 0.60 В.",
+          en:"⚠️ CLOSE THE CHIMNEY FIRST, then reduce — otherwise draught pulls cold air and deposits black carbon. Keep probe ≥ 0.60 V."},
+    critical:true },
+
+  { num:7, code:'HOLD_OX',
+    name:{uk:"IVb · Окиснювальна витримка ⭐⭐", en:"IVb · Oxidation soak ⭐⭐"},
+    band:{uk:"900 → 800 °C · ≥ 4 год", en:"900 → 800 °C · ≥ 4 h"},
+    fuel:{uk:"мінімум; впустити повітря", en:"minimal; let air in"},
+    targetAtm:'oxidation',
+    atmosphere:{uk:"ОКИСНЕННЯ (зворотний strike)", en:"OXIDATION (reverse strike)"},
+    method:{uk:"відкрити піддувало й канали", en:"open air inlets & ports"},
+    hint:{uk:"⭐⭐ СЕРЦЕ КОЛЬОРУ. Відкрий повітря, тримай ОКИСНЕННЯ (зонд < 0.45 В) щонайменше 4 год — залізо витягується назовні й окиснюється в рожево-червоний гематит. Перед запечатуванням агент відновлення має ПОВНІСТЮ прогоріти.",
+          en:"⭐⭐ HEART OF COLOUR. Open air, hold OXIDATION (probe < 0.45 V) for at least 4 h — iron migrates out and oxidises into pink-red haematite. The reduction agent must FULLY burn out before sealing."},
+    critical:true, holdHours:4 },
+
+  { num:8, code:'SEAL',
+    name:{uk:"Запечатування", en:"Sealing (clamming)"},
+    band:{uk:"< 800 °C", en:"< 800 °C"},
+    fuel:{uk:"—", en:"—"},
+    targetAtm:'sealed',
+    atmosphere:{uk:"запечатано", en:"sealed"},
+    method:{uk:"суміш землі / піску", en:"earth–sand mix"},
+    hint:{uk:"Нижче 800 °C запечатай отвори (~13 см², НЕ герметично). ⚠️ Кварцовий перехід ~573 °C — НЕ відкривати, не підглядати: тонка анагама холоне швидко → тріщини.",
+          en:"Below 800 °C seal openings (~13 cm², NOT airtight). ⚠️ Quartz inversion ~573 °C — do NOT open or peek: thin anagama cools fast → cracks."},
+    critical:true },
 ];
+function P(code){ return PHASES.find(p => p.code===code) || null; }
+
+// Dynamic alert texts (bilingual)
+const MSG = {
+  holdDoneHead:{uk:"✅ ВИТРИМКУ ЗАВЕРШЕНО", en:"✅ SOAK COMPLETE"},
+  holdDoneMsg:{uk:"4 години окиснювальної витримки 900→800 °C виконано.\nПереконайся, що вугілля стало попелом — і запечатуй (~13 см², не герметично).",
+               en:"4 h oxidation soak 900→800 °C done.\nMake sure coals are ash — then seal (~13 cm², not airtight)."},
+  atmHead:{uk:"⚠️ ВІДНОВЛЕННЯ ПІД ЧАС ВИТРИМКИ", en:"⚠️ REDUCTION DURING SOAK"},
+  atmMsg:{uk:"Зонд показує відновлення (≥ 0.60 В), а зараз має бути ОКИСНЕННЯ.\nВідкрий повітря / піддувало. Колір народжується тільки в окисненні.",
+           en:"Probe shows reduction (≥ 0.60 V) but this phase needs OXIDATION.\nOpen air / inlets. Colour only forms in oxidation."},
+};
 
 const CRIT_THRESHOLDS = [
-  { temp:1100, head:'⚡ ФАЗА 6 — перехід в окислення',
-    msg:'Готуватись до переходу в окислення (Rye)\nВідкрити тягу, припинити підкидання\nДати печі самій окислитись' },
-  { temp:900,  head:'🌬️ ОКИСЛЕННЯ АКТИВНЕ',
-    msg:'Стежити за пірометром\nЯкщо температура росте → вода\nПочинати цикли (3, 5 або 7)' },
-  { temp:850,  head:'🌬️ ФАЗА 8 — фінальне окислення',
-    msg:'Підкидати тільки суху деревину\nЧисте догоряння — без диму\n⚠️ Вугілля = попіл перед запечатуванням' },
-  { temp:800,  head:'🔒 ЧАС ЗАПЕЧАТУВАТИ',
-    msg:'⚠️ Перевір: вугілля має бути попелом!\nОтвір ~13 см² (Rye) — НЕ герметично\nЗастереження Ненкервіса: вугілля = все чорне' },
+  { temp:700,  dir:'up',   code:'FE_WINDOW',
+    head:{uk:"⭐ ВІКНО ЗАЛІЗА 700–900 °C", en:"⭐ IRON WINDOW 700–900 °C"},
+    msg:{uk:"Тут закладається колір.\nТримай ЧИСТЕ ОКИСНЕННЯ (зонд < 0.45 В), щоб залізо лишилось Fe₂O₃.",
+         en:"Colour is set here.\nHold CLEAN OXIDATION (probe < 0.45 V) so iron stays Fe₂O₃."} },
+  { temp:1340, dir:'over', code:'OVERTEMP',
+    head:{uk:"🔥 СТЕЛЯ ТЕМПЕРАТУРИ", en:"🔥 TEMPERATURE CEILING"},
+    msg:{uk:"Топка наближається до 1350 °C — НЕ перевищувати!\nРобоча на піку: 1250–1300 °C топка, 1200–1250 °C камера.",
+         en:"Firebox approaching 1350 °C — do NOT exceed!\nWorking peak: 1250–1300 °C firebox, 1200–1250 °C chamber."} },
+  { temp:1100, dir:'down', code:'IVA',
+    head:{uk:"🌑 IVa — ВІДНОВНЕ ОХОЛОДЖЕННЯ", en:"🌑 IVa — REDUCTION COOLING"},
+    msg:{uk:"СПОЧАТКУ ПЕРЕКРИЙ ТРУБУ, тоді важке відновлення (зонд ≥ 0.60 В).\nІнакше холодне повітря → чорний вуглець на виробах.",
+         en:"CLOSE THE CHIMNEY FIRST, then heavy reduction (probe ≥ 0.60 V).\nOtherwise cold air → black carbon on the ware."} },
+  { temp:900,  dir:'down', code:'IVB_START',
+    head:{uk:"⭐⭐ IVb — СТАРТ ОКИСНЮВАЛЬНОЇ ВИТРИМКИ", en:"⭐⭐ IVb — OXIDATION SOAK START"},
+    msg:{uk:"Серце кольору. Переходь в ОКИСНЕННЯ: відкрий повітря / піддувало (зонд < 0.45 В).\nТримай 900→800 °C щонайменше 4 години. Таймер пішов.",
+         en:"Heart of colour. Switch to OXIDATION: open air / inlets (probe < 0.45 V).\nHold 900→800 °C for at least 4 hours. Timer started."} },
+  { temp:800,  dir:'down', code:'SEALCHK',
+    head:{uk:"🔒 ЧАС ЗАПЕЧАТУВАТИ", en:"🔒 TIME TO SEAL"},
+    msg:{uk:"Витримку завершено? Вугілля = попіл?\nЗапечатуй отвори ~13 см² — НЕ герметично.",
+         en:"Soak complete? Coals = ash?\nSeal openings ~13 cm² — NOT airtight."} },
+  { temp:573,  dir:'down', code:'QUARTZ',
+    head:{uk:"❄️ КВАРЦОВИЙ ПЕРЕХІД ~573 °C", en:"❄️ QUARTZ INVERSION ~573 °C"},
+    msg:{uk:"НЕ відкривати, не підглядати!\nРізке охолодження тут рве вироби. Дай холонути повільно.",
+         en:"Do NOT open or peek!\nRapid cooling here cracks ware. Let it cool slowly."} },
 ];
 
 let _alerted = new Set();
+let _lastTemp = null;
+let _atmAlarmArmed = true;
+let liveData = null;   // latest telemetry snapshot from kiln sensor (Firebase live/{id})
+let liveTs   = 0;      // ms timestamp of that snapshot
 
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 const LS = {
@@ -1048,6 +1236,17 @@ async function pullSession() {
     setSyncDot('offline');
     setBanner(!!CFG.fbUrl);
   }
+  // Live telemetry from the kiln-side dashboard — separate path, never clobbered by phone writes
+  try {
+    const live = await fbGet(`live/${session.id}`);
+    if (live && live.ts) {
+      const changed = (Number(live.ts) !== liveTs);
+      liveData = live;
+      liveTs   = Number(live.ts) || 0;
+      if (changed) renderStatus();
+    }
+    checkProtocol();
+  } catch (e) {}
 }
 
 async function pushSession() {
@@ -1084,6 +1283,9 @@ function genCode() {
 }
 
 function openNewSession() {
+  if (session && !session.endTime && !isAdmin) {
+    if (!confirm(t({uk:'Ти приєднаний як гість. Створити НОВИЙ окремий випал? Поточний випал не зміниться.', en:'You joined as a guest. Create a NEW separate firing? The current one is unchanged.'}))) return;
+  }
   document.getElementById('modal-name').value =
     'Випал ' + new Date().toLocaleDateString('uk-UA',{day:'numeric',month:'long'});
   showModal('modal-new');
@@ -1193,6 +1395,11 @@ async function addEntry() {
 
   if (!session.entries) session.entries = {};
   session.entries[e.id] = e;
+  const _ph = detectPhase(temp);
+  e.phase     = _ph ? _ph.code : null;
+  e.phaseNum  = _ph ? _ph.num : null;
+  e.targetAtm = _ph ? _ph.targetAtm : null;
+  e.atm       = atmFromVolts(e.oxyprobe);
 
   tempEl.value = '';
   if (chamberEl) chamberEl.value = '';
@@ -1206,39 +1413,93 @@ async function addEntry() {
   toast('Запис збережено ✓');
 }
 
-// ── PHASE DETECTION ──────────────────────────────────────────────────────────
-function detectPhase(entries) {
-  if (!entries || !entries.length) return null;
-  const last    = entries[entries.length - 1];
-  const temp    = last.temp;
-  const maxTemp = Math.max(...entries.map(e => e.temp));
-  const peaked  = maxTemp >= 1240;
-
-  if (!peaked) {
-    if (temp < 1050) return PHASES[0];  // Phase 1
-    if (temp < 1200) return PHASES[1];  // Phase 2
-    if (temp < 1260) return PHASES[2];  // Phase 3
-    return PHASES[3];                   // Phase 4 — at peak
-  } else {
-    if (temp >= 1120) return PHASES[4]; // Phase 5 — reduced cooling
-    if (temp >= 900)  return PHASES[5]; // Phase 6 — oxidation transition
-    if (temp >= 850)  return PHASES[6]; // Phase 7 — cycles
-    if (temp >= 785)  return PHASES[7]; // Phase 8 — final oxidation
-    return PHASES[8];                   // Phase 9 — seal
+// ── LIVE TELEMETRY + CURRENT READING ─────────────────────────────────────────
+function numOrNull(v){ return (v==null || isNaN(v)) ? null : Number(v); }
+function liveFresh(){ return !!(liveData && liveTs && (Date.now() - liveTs < 45000)); }
+function currentReading(){
+  if (liveFresh()) {
+    return { topka: numOrNull(liveData.topka), kamera: numOrNull(liveData.kamera),
+             truba: numOrNull(liveData.truba), volts: numOrNull(liveData.volts),
+             ts: liveTs, source: 'live' };
   }
+  const entries = getEntries();
+  if (!entries.length) return null;
+  const e = entries[entries.length-1];
+  return { topka: numOrNull(e.tempFirebox!=null ? e.tempFirebox : e.temp),
+           kamera: numOrNull(e.tempChamber), truba: null,
+           volts: numOrNull(e.oxyprobe), ts: e.time, source: 'manual' };
+}
+function maxTopka(){
+  const entries = getEntries();
+  let vals = entries.map(e => e.tempFirebox!=null ? e.tempFirebox : e.temp).filter(v => v!=null);
+  if (liveFresh() && liveData.topka!=null) vals.push(Number(liveData.topka));
+  return vals.length ? Math.max(...vals) : null;
 }
 
-// ── CRITICAL ALERTS ───────────────────────────────────────────────────────────
-function checkCriticalPoints(temp) {
-  const entries = getEntries();
-  if (!entries.length) return;
-  const maxTemp = Math.max(...entries.map(e => e.temp));
-  if (maxTemp < 1240) return; // not peaked yet
+// ── PHASE DETECTION (firebox-governed) ───────────────────────────────────────
+function detectPhase(tempOverride){
+  const r = currentReading();
+  const temp = (tempOverride!=null) ? tempOverride : (r ? r.topka : null);
+  if (temp==null) return null;
+  const mx = maxTopka();
+  const peaked = mx!=null && mx >= 1240;
+  if (!peaked) {
+    if (temp < 200) return P('PRE');
+    if (temp < 700) return P('RISE');
+    if (temp < 900) return P('FE_WINDOW');
+    return P('RISE_PEAK');
+  }
+  if (temp >= 1240) return P('PEAK');
+  if (temp >= 900)  return P('COOL_RED');   // IVa
+  if (temp >= 800)  return P('HOLD_OX');    // IVb
+  return P('SEAL');
+}
+
+// ── CRITICAL ALERTS ──────────────────────────────────────────────────────────
+function checkCriticalPoints(temp){
+  if (temp==null || isNaN(temp)) return;
+  const prev = _lastTemp; _lastTemp = temp;
+  const goingUp = (prev==null) ? true : (temp >= prev);
+  const mx = maxTopka(); const peaked = mx!=null && mx >= 1240;
+  if (temp < 1280) _alerted.delete('OVERTEMP');   // re-arm ceiling alert
   for (const ct of CRIT_THRESHOLDS) {
-    if (!_alerted.has(ct.temp) && temp <= ct.temp + 22 && temp >= ct.temp - 22) {
-      _alerted.add(ct.temp);
-      showCritAlert(ct.head, ct.msg);
-      break; // one at a time
+    if (_alerted.has(ct.code)) continue;
+    let fire = false;
+    if (ct.dir==='over')      fire = (temp >= ct.temp);
+    else if (ct.dir==='up')   fire = (goingUp && Math.abs(temp-ct.temp) <= 25);
+    else if (ct.dir==='down') fire = (!goingUp && peaked && Math.abs(temp-ct.temp) <= 25);
+    if (!fire) continue;
+    _alerted.add(ct.code);
+    showCritAlert(t(ct.head), t(ct.msg));
+    if (ct.code==='IVB_START') startHoldTimer();
+    break;
+  }
+  checkProtocol();
+}
+
+// ── IVb 4h HOLD TIMER + ATMOSPHERE ALARM ─────────────────────────────────────
+function startHoldTimer(){
+  if (!session) return;
+  if (!session.holdStartTs) { session.holdStartTs = Date.now(); pushSession(); }
+}
+function holdHoursTarget(){ const p = P('HOLD_OX'); return (p && p.holdHours) ? p.holdHours : 4; }
+function checkProtocol(){
+  const ph = detectPhase();
+  const r  = currentReading();
+  const atm = atmFromVolts(r ? r.volts : null);
+  if (ph && ph.code==='HOLD_OX') {
+    startHoldTimer();
+    if (session && session.holdStartTs) {
+      const elapsed = Date.now() - session.holdStartTs;
+      if (elapsed >= holdHoursTarget()*3600000 && !_alerted.has('IVB_DONE')) {
+        _alerted.add('IVB_DONE');
+        showCritAlert(t(MSG.holdDoneHead), t(MSG.holdDoneMsg));
+      }
+    }
+    if (atm==='reduction') {
+      if (_atmAlarmArmed) { _atmAlarmArmed = false; showCritAlert(t(MSG.atmHead), t(MSG.atmMsg)); }
+    } else if (atm==='oxidation') {
+      _atmAlarmArmed = true;
     }
   }
 }
@@ -1264,11 +1525,11 @@ function dismissAlert() {
   if (el) el.classList.remove('show');
 }
 
-// ── RYE PROTOCOL ─────────────────────────────────────────────────────────────
+// ── RUM'YANETS PROTOCOL (planned curve preset) ───────────────────────────────
 function openRyeModal() {
-  if (!session) { toast('Спочатку почніть випал'); return; }
+  if (!session) { toast(t({uk:'Спочатку почніть випал', en:'Start a firing first'})); return; }
   const elapsed = session.startTime
-    ? Math.round((Date.now() - session.startTime) / 360000) / 10  // hours, 1 decimal
+    ? Math.round((Date.now() - session.startTime) / 360000) / 10
     : 0;
   document.getElementById('rye-start-h').value = elapsed || 0;
   document.getElementById('rye-peak').value    = 1280;
@@ -1283,20 +1544,20 @@ async function confirmRyeProtocol() {
   const s        = Math.round(startH * 60); // minutes from session start
 
   session.plannedCurve = [
-    { minutes: s,       temp: 900      },  // Phase 1 start
-    { minutes: s + 180, temp: 1050     },  // +3h: end Phase 1
-    { minutes: s + 390, temp: 1200     },  // +3.5h: end Phase 2
-    { minutes: s + 570, temp: peakTemp },  // +3h: peak
-    { minutes: s + 690, temp: peakTemp },  // +2h: hold at peak
-    { minutes: s + 930, temp: 1100     },  // +4h: end Phase 5
-    { minutes: s + 1050, temp: 900     },  // +2h: Phase 6 end
-    { minutes: s + 1170, temp: 850     },  // +2h: Phase 7 end
-    { minutes: s + 1230, temp: 800     },  // +1h: seal
+    { minutes: s,        temp: 200      },  // pre-heat done
+    { minutes: s + 240,  temp: 700      },  // enter iron window 700–900 (oxidation)
+    { minutes: s + 360,  temp: 900      },  // leave iron window
+    { minutes: s + 540,  temp: peakTemp },  // peak (cone 10)
+    { minutes: s + 660,  temp: peakTemp },  // soak
+    { minutes: s + 840,  temp: 1100     },  // IVa reduction cooling start
+    { minutes: s + 960,  temp: 900      },  // IVb oxidation soak start
+    { minutes: s + 1200, temp: 800      },  // IVb end — 4 h hold (900->800)
+    { minutes: s + 1260, temp: 700      },  // sealed, cooling
   ];
 
   await pushSession();
   renderPlan();
-  toast('Протокол Рая завантажено ✓');
+  toast(t({uk:"Протокол рум'янцю завантажено ✓", en:"Flashing protocol loaded ✓"}));
 }
 
 // ── PLAN: CURVE ──────────────────────────────────────────────────────────────
@@ -1549,6 +1810,10 @@ function showApp() {
   document.querySelectorAll('.admin-only').forEach(el => {
     el.style.display = isAdmin ? '' : 'none';
   });
+  // Show .guest-only elements only for joined (non-admin) participants
+  document.querySelectorAll('.guest-only').forEach(el => {
+    el.style.display = (session && !isAdmin) ? '' : 'none';
+  });
 }
 
 function showTab(name) {
@@ -1629,94 +1894,160 @@ function renderStatus() {
     el.innerHTML = `
       <div class="no-session">
         <div class="ico">🔥</div>
-        <p>Немає активного випалу</p>
-        <button class="btn-primary" onclick="openNewSession()">Новий Випал</button>
-        <button class="btn-secondary" onclick="document.getElementById('join-code').focus();backToHome()">Приєднатись</button>
+        <p>${t({uk:'Немає активного випалу',en:'No active firing'})}</p>
+        ${isAdmin ? `<button class="btn-primary" onclick="openNewSession()">${t({uk:'Новий Випал',en:'New Firing'})}</button>` : `<div style="font-size:0.74rem;color:var(--smoke);margin-bottom:10px;line-height:1.5">${t({uk:'Новий випал створює організатор. Введи код, щоб приєднатися.',en:'Only the organizer starts a firing. Enter a code to join.'})}</div>`}
+        <button class="btn-secondary" onclick="document.getElementById('join-code').focus();backToHome()">${t({uk:'Приєднатись',en:'Join'})}</button>
       </div>`;
     if (tickTimer) clearInterval(tickTimer);
     return;
   }
 
+  const chC       = {none:'var(--green)',white:'#ccc',black:'#888',flame:'var(--ember)'};
   const entries   = getEntries();
   const last      = entries[entries.length-1];
+  const r         = currentReading();
+  const live      = liveFresh();
   const dur       = Date.now() - session.startTime;
-  const elMin     = dur/60000;
-  const planT     = getPlannedTempAt(elMin);
+  const planT     = getPlannedTempAt(dur/60000);
   const shift     = getCurrentShift();
-  const curPhase  = detectPhase(entries);
+  const curPhase  = detectPhase();
+  const curAtm    = atmFromVolts(r ? r.volts : null);
+
+  const topkaVal  = (r && r.topka!=null)  ? r.topka  : (last ? (last.tempFirebox!=null?last.tempFirebox:last.temp) : null);
+  const kameraVal = (r && r.kamera!=null) ? r.kamera : (last && last.tempChamber!=null ? last.tempChamber : null);
+  const trubaVal  = (r && r.truba!=null)  ? r.truba  : null;
+
+  const ageSec = live ? Math.max(0, Math.round((Date.now()-liveTs)/1000)) : null;
+  const banner = live
+    ? `<div style="display:flex;align-items:center;gap:7px;background:rgba(46,160,110,.12);border:1px solid rgba(46,160,110,.4);border-radius:8px;padding:6px 10px;margin-bottom:10px;font-size:0.72rem;color:#7fd7a8">
+         <span style="width:8px;height:8px;border-radius:50%;background:#2ea06e;box-shadow:0 0 8px #2ea06e"></span>
+         ${t({uk:'Жива телеметрія з печі',en:'Live telemetry from kiln'})} · ${ageSec}${t({uk:' с тому',en:'s ago'})}
+       </div>`
+    : `<div style="display:flex;align-items:center;gap:7px;background:rgba(245,237,230,.05);border:1px solid rgba(245,237,230,.15);border-radius:8px;padding:6px 10px;margin-bottom:10px;font-size:0.72rem;color:var(--smoke)">
+         <span style="width:8px;height:8px;border-radius:50%;background:var(--smoke)"></span>
+         ${t({uk:'Ручний режим — додавай показники вручну',en:'Manual mode — add readings by hand'})}
+       </div>`;
 
   let devHtml = '';
-  if (planT !== null && last) {
-    const diff = last.temp - planT;
-    if (Math.abs(diff)<=15) devHtml = `<div class="deviation ok">✓ На плані (план: ${planT}°C)</div>`;
-    else if (diff>0) devHtml = `<div class="deviation above">▲ +${diff}° вище плану (план: ${planT}°C)</div>`;
-    else              devHtml = `<div class="deviation below">▼ ${diff}° нижче плану (план: ${planT}°C)</div>`;
+  if (planT !== null && topkaVal !== null) {
+    const diff = topkaVal - planT;
+    if (Math.abs(diff)<=15) devHtml = `<div class="deviation ok">✓ ${t({uk:'На плані',en:'On plan'})} (${t({uk:'план',en:'plan'})}: ${planT}°C)</div>`;
+    else if (diff>0)        devHtml = `<div class="deviation above">▲ +${diff}° ${t({uk:'вище плану',en:'above plan'})} (${planT}°C)</div>`;
+    else                    devHtml = `<div class="deviation below">▼ ${diff}° ${t({uk:'нижче плану',en:'below plan'})} (${planT}°C)</div>`;
   }
 
-  const chC = {none:'var(--green)',white:'#ccc',black:'#888',flame:'var(--ember)'};
+  // atmosphere traffic light vs phase target
+  let atmHtml = '';
+  {
+    const targetKey   = curPhase ? curPhase.targetAtm : null;
+    const showTraffic = targetKey && (targetKey==='reduction'||targetKey==='oxidation'||targetKey==='transition');
+    const curLabel = curAtm ? t(ATM[curAtm]) : t({uk:'нема даних зонда',en:'no probe data'});
+    const curColor = curAtm ? ATM[curAtm].color : 'var(--smoke)';
+    const voltsStr = (r && r.volts!=null) ? ` · ${Number(r.volts).toFixed(2)} В` : '';
+    let match = '';
+    if (showTraffic && curAtm) {
+      match = (curAtm===targetKey)
+        ? `<span style="color:#2ea06e;font-weight:600">✓ ${t({uk:'відповідає фазі',en:'matches phase'})}</span>`
+        : `<span style="color:var(--red);font-weight:700">✗ ${t({uk:'має бути',en:'should be'})} ${t(ATM[targetKey]).toUpperCase()}</span>`;
+    } else if (showTraffic) {
+      match = `<span style="color:var(--smoke)">${t({uk:'ціль',en:'target'})}: ${t(ATM[targetKey])}</span>`;
+    }
+    atmHtml = `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0">
+        <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(0,0,0,.25);border:1px solid ${curColor}55;border-radius:20px;padding:4px 11px;font-size:0.8rem;color:${curColor};font-weight:600">
+          <span style="width:9px;height:9px;border-radius:50%;background:${curColor};box-shadow:0 0 7px ${curColor}"></span>${curLabel}${voltsStr}
+        </span>${match}
+      </div>`;
+  }
 
+  // IVb 4h oxidation soak timer
+  let holdHtml = '';
+  if (curPhase && curPhase.code==='HOLD_OX') {
+    if (!session.holdStartTs) { session.holdStartTs = Date.now(); pushSession(); }
+    const remMs = Math.max(0, holdHoursTarget()*3600000 - (Date.now()-session.holdStartTs));
+    const done  = remMs<=0;
+    holdHtml = `<div class="card" style="border:1px solid ${done?'#2ea06e':'#3cc6ff'};background:${done?'rgba(46,160,110,.08)':'rgba(60,198,255,.06)'}">
+        <div style="font-family:'Cinzel',serif;letter-spacing:.06em;font-size:.72rem;color:${done?'#7fd7a8':'#8fd4f5'};margin-bottom:4px">⭐⭐ ${t({uk:'ОКИСНЮВАЛЬНА ВИТРИМКА 900→800',en:'OXIDATION SOAK 900→800'})}</div>
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+          <div id="hold-timer" style="font-family:'Cinzel',serif;font-size:2rem;font-weight:700;color:${done?'#2ea06e':'#3cc6ff'}">${done?t({uk:'ГОТОВО',en:'DONE'}):fmtHold(remMs)}</div>
+          <div style="font-size:.72rem;color:var(--smoke)">${done?t({uk:'4 год виконано — можна запечатувати',en:'4 h done — ready to seal'}):t({uk:'залишилось до 4 год',en:'left of 4 h'})}</div>
+        </div>
+        <div style="font-size:.72rem;color:var(--blush);margin-top:6px">${t({uk:'Тримай ОКИСНЕННЯ (зонд < 0.45 В). Дзвінок при відновленні.',en:'Hold OXIDATION (probe < 0.45 V). Alarm if it goes reductive.'})}</div>
+      </div>`;
+  }
+
+  const star = (curPhase && curPhase.critical) ? ' style="border-color:rgba(232,93,4,.55)"' : '';
   const phaseHtml = curPhase ? `
-    <div class="phase-card">
-      <div class="phase-badge-num">▶ ФАЗА ${curPhase.num}</div>
-      <div class="phase-card-name">${curPhase.name}</div>
-      <div class="phase-row"><div class="phase-lbl">Дрова</div><div class="phase-val">${curPhase.fuel}</div></div>
-      <div class="phase-row"><div class="phase-lbl">Атмосфера</div><div class="phase-val">${curPhase.atmosphere}</div></div>
-      <div class="phase-row"><div class="phase-lbl">Метод</div><div class="phase-val">${curPhase.method}</div></div>
-      <div class="phase-hint">💡 ${curPhase.hint}</div>
+    <div class="phase-card"${star}>
+      <div class="phase-badge-num">▶ ${t({uk:'ФАЗА',en:'PHASE'})} ${curPhase.num}</div>
+      <div class="phase-card-name">${t(curPhase.name)}</div>
+      <div class="phase-row"><div class="phase-lbl">${t({uk:'Темп.',en:'Temp.'})}</div><div class="phase-val">${t(curPhase.band)}</div></div>
+      <div class="phase-row"><div class="phase-lbl">${t({uk:'Дрова',en:'Fuel'})}</div><div class="phase-val">${t(curPhase.fuel)}</div></div>
+      <div class="phase-row"><div class="phase-lbl">${t({uk:'Атмосфера',en:'Atmosphere'})}</div><div class="phase-val">${t(curPhase.atmosphere)}</div></div>
+      <div class="phase-row"><div class="phase-lbl">${t({uk:'Метод',en:'Method'})}</div><div class="phase-val">${t(curPhase.method)}</div></div>
+      <div class="phase-hint">💡 ${t(curPhase.hint)}</div>
     </div>` : '';
 
-  const startDateStr  = fmtAbsTime(session.startTime);
-  const lastEntryStr  = last ? fmtAbsTime(last.time) : null;
-  const chamberStr    = last?.tempChamber != null ? `<span style="color:var(--blue);font-size:1.5rem;margin-left:12px">${last.tempChamber}</span><span style="color:var(--blue);font-size:0.85rem;margin-left:2px">°C каm</span>` : '';
+  const startDateStr = fmtAbsTime(session.startTime);
+  const lastEntryStr = last ? fmtAbsTime(last.time) : null;
+  const srcPill = `<span style="font-size:.58rem;padding:2px 7px;border-radius:10px;background:${live?'rgba(46,160,110,.18)':'rgba(245,237,230,.08)'};color:${live?'#7fd7a8':'var(--smoke)'}">${live?t({uk:'🟢 з печі',en:'🟢 kiln'}):t({uk:'✋ вручну',en:'✋ manual'})}</span>`;
 
   el.innerHTML = `
+    ${banner}
     <div class="card">
       <div class="session-meta">
         <div class="s-name">${session.name}</div>
-        <span class="s-badge s-active">Активний</span>
+        <span class="s-badge s-active">${t({uk:'Активний',en:'Active'})}</span>
       </div>
       <div style="font-size:0.65rem;color:rgba(245,237,230,0.45);margin-bottom:8px;font-family:'Cinzel',serif;letter-spacing:0.05em">
-        Старт: ${startDateStr}
+        ${t({uk:'Старт',en:'Start'})}: ${startDateStr} &nbsp; ${srcPill}
       </div>
       <div class="temp-display" style="align-items:center;flex-wrap:wrap;gap:10px">
         <div style="display:flex;align-items:baseline;gap:6px">
-          <div class="temp-big">${last ? last.temp : '—'}</div>
-          <div>
-            <div class="temp-unit">°C топка</div>
-          </div>
+          <div class="temp-big">${topkaVal!=null?topkaVal:'—'}</div>
+          <div><div class="temp-unit">°C ${t({uk:'топка',en:'firebox'})}</div></div>
         </div>
-        ${last?.tempChamber != null ? `<div style="display:flex;align-items:baseline;gap:4px">
-          <div style="font-family:'Cinzel',serif;font-size:1.9rem;font-weight:700;color:var(--blue);text-shadow:0 0 12px rgba(106,173,221,.3)">${last.tempChamber}</div>
-          <div style="font-size:0.8rem;color:var(--blue)">°C кам</div>
-        </div>` : ''}
+        ${kameraVal!=null?`<div style="display:flex;align-items:baseline;gap:4px">
+          <div style="font-family:'Cinzel',serif;font-size:1.9rem;font-weight:700;color:var(--blue);text-shadow:0 0 12px rgba(106,173,221,.3)">${kameraVal}</div>
+          <div style="font-size:0.8rem;color:var(--blue)">°C ${t({uk:'кам',en:'chmb'})}</div>
+        </div>`:''}
+        ${trubaVal!=null?`<div style="display:flex;align-items:baseline;gap:4px">
+          <div style="font-family:'Cinzel',serif;font-size:1.3rem;font-weight:700;color:#9aacb5">${trubaVal}</div>
+          <div style="font-size:0.72rem;color:#9aacb5">°C ${t({uk:'труба',en:'flue'})}</div>
+        </div>`:''}
       </div>
       ${devHtml}
-      ${last?.oxyprobe != null ? `<div style="font-size:0.78rem;color:var(--blue);margin-bottom:7px">O₂: ${last.oxyprobe}%</div>` : ''}
-      ${last?.chimney ? `<div style="font-size:0.8rem;margin-bottom:8px">Труба: <span style="color:${chC[last.chimney]}">${chimneyLabel(last.chimney)}</span></div>` : ''}
-      ${lastEntryStr ? `<div style="font-size:0.65rem;color:rgba(245,237,230,0.4);margin-bottom:8px;font-family:'Cinzel',serif">Останній запис: ${lastEntryStr}</div>` : ''}
-      ${last?.woodType ? `<div style="font-size:0.75rem;color:var(--smoke);margin-bottom:8px">${woodTypeLabel(last.woodType)} · ${woodAmountLabel(last.woodAmount)} · ${stokingLabel(last.stokingMethod)}</div>` : ''}
-      ${shift ? `<div class="shift-now"><span class="shift-label">Черговий</span><span class="shift-person">${shift.person}</span></div>` : ''}
+      ${atmHtml}
+      ${last && last.chimney ? `<div style="font-size:0.8rem;margin-bottom:8px">${t({uk:'Труба',en:'Chimney'})}: <span style="color:${chC[last.chimney]}">${chimneyLabel(last.chimney)}</span></div>` : ''}
+      ${lastEntryStr ? `<div style="font-size:0.65rem;color:rgba(245,237,230,0.4);margin-bottom:8px;font-family:'Cinzel',serif">${t({uk:'Останній запис',en:'Last entry'})}: ${lastEntryStr}</div>` : ''}
+      ${last && last.woodType ? `<div style="font-size:0.75rem;color:var(--smoke);margin-bottom:8px">${woodTypeLabel(last.woodType)} · ${woodAmountLabel(last.woodAmount)} · ${stokingLabel(last.stokingMethod)}</div>` : ''}
+      ${shift ? `<div class="shift-now"><span class="shift-label">${t({uk:'Черговий',en:'On shift'})}</span><span class="shift-person">${shift.person}</span></div>` : ''}
       <div style="display:flex;justify-content:space-between;align-items:center">
         <div class="timer" id="live-timer">${fmtDur(dur)}</div>
-        <div style="font-size:0.68rem;color:var(--smoke)">з ${new Date(session.startTime).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="font-size:0.68rem;color:var(--smoke)">${t({uk:'з',en:'since'})} ${new Date(session.startTime).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}</div>
       </div>
       <div class="divider"></div>
-      ${isAdmin ? `<button class="btn-secondary btn-danger" onclick="showModal('modal-end')">Завершити Випал</button>` : `<div style="font-size:0.68rem;color:rgba(245,237,230,0.3);text-align:center;padding:6px;font-family:'Cinzel',serif;letter-spacing:0.08em">Завершення — тільки для адміна</div>`}
+      ${isAdmin ? `<button class="btn-secondary btn-danger" onclick="showModal('modal-end')">${t({uk:'Завершити Випал',en:'End Firing'})}</button>` : `<div style="font-size:0.68rem;color:rgba(245,237,230,0.3);text-align:center;padding:6px;font-family:'Cinzel',serif;letter-spacing:0.08em">${t({uk:'Завершення — тільки для адміна',en:'Ending — admin only'})}</div>`}
     </div>
 
+    ${holdHtml}
     ${phaseHtml}
 
     ${entries.length>0 ? `
       <div class="card">
-        <h2>Останні Записи</h2>
+        <h2>${t({uk:'Останні Записи',en:'Recent Entries'})}</h2>
         ${[...entries].reverse().slice(0,6).map(entryRow).join('')}
       </div>` : ''}`;
 
-  // live timer
   if (tickTimer) clearInterval(tickTimer);
   tickTimer = setInterval(()=>{
+    if (!session || session.endTime) return;
     const tEl = document.getElementById('live-timer');
-    if (tEl && session && !session.endTime) tEl.textContent = fmtDur(Date.now()-session.startTime);
+    if (tEl) tEl.textContent = fmtDur(Date.now()-session.startTime);
+    const hEl = document.getElementById('hold-timer');
+    if (hEl && session.holdStartTs) {
+      const remMs = Math.max(0, holdHoursTarget()*3600000 - (Date.now()-session.holdStartTs));
+      hEl.textContent = remMs<=0 ? t({uk:'ГОТОВО',en:'DONE'}) : fmtHold(remMs);
+    }
   }, 30000);
 }
 
@@ -1950,12 +2281,15 @@ function exportCSV(s) {
   if (!s) return;
   const ents = s.entries ? Object.values(s.entries).sort((a,b)=>a.time-b.time) : [];
   const BOM  = '\uFEFF';
-  const cols = ['Час','Топка °C','Камера °C','Оксипроб','Дим з труби','Порода дров','Кількість','Метод підкидання','Черговий','Нотатка'];
+  const ATM_CSV = {reduction:'відновлення',transition:'перехід',oxidation:'окиснення',neutral:'нейтральна',sealed:'запечатано'};
+  const cols = ['Час','Топка °C','Камера °C','Фаза','Лямбда В','Атмосфера','Дим з труби','Порода дров','Кількість','Метод підкидання','Черговий','Нотатка'];
   const rows = ents.map(e=>[
     new Date(e.time).toLocaleString('uk-UA'),
     e.tempFirebox||e.temp,
     e.tempChamber != null ? e.tempChamber : '',
+    e.phaseNum ? ('Ф'+e.phaseNum) : '',
     e.oxyprobe != null ? e.oxyprobe : '',
+    e.atm ? ATM_CSV[e.atm] : '',
     chimneyLabel(e.chimney||'none'),
     woodTypeLabel(e.woodType||''),
     woodAmountLabel(e.woodAmount||''),
@@ -1995,8 +2329,8 @@ function printSession(s) {
       <td>${new Date(e.time).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}</td>
       <td style="font-weight:bold;color:#c0392b">${e.tempFirebox||e.temp}°C</td>
       <td style="color:#3366aa">${e.tempChamber!=null ? e.tempChamber+'°C' : ''}</td>
-      <td style="color:#5588cc">${e.oxyprobe != null ? e.oxyprobe+'%' : ''}</td>
-      <td></td>
+      <td style="color:#5588cc">${e.oxyprobe != null ? e.oxyprobe+' В' : ''}</td>
+      <td style="color:#888">${e.atm ? ({reduction:'віднов.',transition:'перех.',oxidation:'окисн.',neutral:'нейтр.',sealed:'запеч.'})[e.atm] : ''}</td>
       <td style="color:${chColor[e.chimney||'none']}">${chimneyLabel(e.chimney||'none')}</td>
       <td>${woodTypeLabel(e.woodType||'')}</td>
       <td>${woodAmountLabel(e.woodAmount||'')}</td>
@@ -2046,7 +2380,7 @@ function printSession(s) {
 </div>
 <table>
   <thead><tr>
-    <th>Час</th><th>Топка °C</th><th>Камера °C</th><th>O₂%</th><th>Дим</th>
+    <th>Час</th><th>Топка °C</th><th>Камера °C</th><th>Лямбда В</th><th>Атмосфера</th><th>Дим</th>
     <th>Порода</th><th>Кількість</th><th>Метод</th><th>Черговий</th><th>Нотатка</th>
   </tr></thead>
   <tbody>${rows}</tbody>
@@ -2257,6 +2591,8 @@ function drawStats() {
 (async function init() {
   // Pre-fill settings inputs + show Firebase status
   updateFbStatusHome();
+  applyLang();
+  renderColor();
   if (CFG.fbUrl) {
     const si = document.getElementById('settings-fb-url');
     if (si) si.value = CFG.fbUrl;
