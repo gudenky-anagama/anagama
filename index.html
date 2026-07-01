@@ -581,6 +581,7 @@ canvas { width:100% !important; display:block; }
       <div class="hdr-code" onclick="copyCode()">
         Код: <span id="hdr-code-val" class="cv">——————</span>
       </div>
+      <div id="guest-link-btn" class="admin-only" onclick="copyGuestLink()" style="display:none;font-size:0.58rem;color:var(--blue);cursor:pointer;margin-top:2px">🔗 гостьове посилання</div>
       <div id="guest-badge" class="guest-only" style="display:none;font-size:0.58rem;color:var(--blush);font-family:'Cinzel',serif;letter-spacing:0.04em;margin-top:2px">👤 Гостьовий режим</div>
     </div>
     <div class="hdr-right">
@@ -1905,6 +1906,16 @@ function copyCode() {
   }
 }
 
+function copyGuestLink() {
+  if (!session) return;
+  const url = location.origin + location.pathname + '?join=' + session.id;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(()=>toast(t({uk:'Гостьове посилання скопійовано ✓', en:'Guest link copied ✓'})));
+  } else {
+    toast(url);
+  }
+}
+
 function saveSetup() {
   const url = document.getElementById('setup-fb-url').value.trim().replace(/\/$/, '');
   if (url) { CFG.fbUrl = url; localStorage.setItem(LS.fbUrl, url); }
@@ -2665,6 +2676,32 @@ function drawStats() {
     if (si) si.value = CFG.fbUrl;
     const su = document.getElementById('setup-fb-url');
     if (su) su.value = CFG.fbUrl;
+  }
+
+  // 0) Guest deep-link: ?join=CODE -> join straight as guest (no create option)
+  const _joinCode = (new URLSearchParams(location.search).get('join') || '').trim().toUpperCase();
+  if (_joinCode && CFG.fbUrl) {
+    setSyncDot('syncing');
+    const data = await fbGet(`sessions/${_joinCode}`);
+    if (data) {
+      session = data;
+      lastHash = JSON.stringify(data);
+      localStorage.setItem(LS.sessId, _joinCode);
+      localStorage.setItem('anagama_session_data', JSON.stringify(data));
+      isAdmin = localStorage.getItem('anagama_admin_id') === _joinCode; // participants -> guest
+      showApp();
+      renderAll();
+      startSync();
+      setSyncDot('online');
+      showTab('status');
+      return;
+    } else {
+      setSyncDot('offline');
+      const jc = document.getElementById('join-code'); if (jc) jc.value = _joinCode;
+      toast(t({uk:'Сесію не знайдено — можливо, її ще не створено', en:'Session not found — maybe not created yet'}));
+      document.getElementById('screen-home').classList.add('active');
+      return;
+    }
   }
 
   // 1) Try restoring from localStorage (instant, works offline)
