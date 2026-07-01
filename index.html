@@ -898,19 +898,15 @@ canvas { width:100% !important; display:block; }
   <div class="modal-box">
     <div class="modal-title">Протокол рум'янцю · Flashing</div>
     <div class="modal-text" style="font-size:0.8rem;line-height:1.6">
-      Заповнить планову криву під <em>вогневий рум'янець</em>: вікно заліза 700–900 °C, пік, відновне охолодження та окиснювальна витримка 900→800 °C (4 год).<br>
-      <span style="font-size:0.72rem;opacity:0.7">Поточні точки кривої буде замінено · current curve points will be replaced.</span>
-    </div>
-    <div class="inp-grp">
-      <label>Старт відліку — год від початку · start offset (h)</label>
-      <input id="rye-start-h" type="number" placeholder="0" min="0" step="0.5" inputmode="decimal">
+      Планова крива на <b>60 год</b> до IVa, прив'язана до <b>наступної цілої години</b> після старту (щоб час був рівний).<br>
+      <span style="font-size:0.72rem;opacity:0.7">Поточні точки кривої буде замінено.</span>
     </div>
     <div class="inp-grp">
       <label>Цільовий пік °C (Cone 10 ≈ 1280)</label>
       <input id="rye-peak" type="number" placeholder="1280" value="1280" min="1200" max="1350" inputmode="numeric">
     </div>
     <div style="font-size:0.72rem;color:var(--smoke);font-style:italic;margin-bottom:14px;line-height:1.7">
-      200 → 700 → 900 → пік → витримка → 1100 → 900 → 800 (4 год) → запечатування
+      12 год 200° · →700 (25°/год) · →900 (вікно заліза, 4 год) · →пік (6 год) · витримка 18 год · IVa→900 · IVb→800 (4 год) · запечатування
     </div>
     <button onclick="confirmRyeProtocol()" class="btn-primary">Завантажити · Load</button>
     <button onclick="closeModal('modal-rye')" class="btn-secondary">Скасувати · Cancel</button>
@@ -1580,31 +1576,31 @@ function dismissAlert() {
 // ── RUM'YANETS PROTOCOL (planned curve preset) ───────────────────────────────
 function openRyeModal() {
   if (!session) { toast(t({uk:'Спочатку почніть випал', en:'Start a firing first'})); return; }
-  const elapsed = session.startTime
-    ? Math.round((Date.now() - session.startTime) / 360000) / 10
-    : 0;
-  document.getElementById('rye-start-h').value = elapsed || 0;
-  document.getElementById('rye-peak').value    = 1280;
+  document.getElementById('rye-peak').value = 1280;
   showModal('modal-rye');
 }
 
 async function confirmRyeProtocol() {
   if (!session) return;
   closeModal('modal-rye');
-  const startH   = parseFloat(document.getElementById('rye-start-h').value) || 0;
   const peakTemp = parseInt(document.getElementById('rye-peak').value) || 1280;
-  const s        = Math.round(startH * 60); // minutes from session start
-
+  // Anchor the plan to the NEXT whole hour after firing start, so every
+  // milestone lands on a round clock time.
+  const d = new Date(session.startTime);
+  const A = (d.getMinutes() === 0) ? 0 : (60 - d.getMinutes());  // minutes start -> next :00
+  // Confirmed 60 h plan (hours from the anchor):
+  //  0=200 · 12h=200 (pre-heat) · 32h=700 (climb 25°/h) · 36h=900 (iron window 4h)
+  //  42h=peak (climb 6h) · 60h=peak (soak+equalize 18h) · then IVa/IVb cooling
   session.plannedCurve = [
-    { minutes: s,        temp: 200      },  // pre-heat done
-    { minutes: s + 240,  temp: 700      },  // enter iron window 700–900 (oxidation)
-    { minutes: s + 360,  temp: 900      },  // leave iron window
-    { minutes: s + 540,  temp: peakTemp },  // peak (cone 10)
-    { minutes: s + 660,  temp: peakTemp },  // soak
-    { minutes: s + 840,  temp: 1100     },  // IVa reduction cooling start
-    { minutes: s + 960,  temp: 900      },  // IVb oxidation soak start
-    { minutes: s + 1200, temp: 800      },  // IVb end — 4 h hold (900->800)
-    { minutes: s + 1260, temp: 700      },  // sealed, cooling
+    { minutes: A + 0,    temp: 200      },  // anchor — pre-heat start
+    { minutes: A + 720,  temp: 200      },  // +12h — pre-heat end
+    { minutes: A + 1920, temp: 700      },  // +32h — end climb to 700
+    { minutes: A + 2160, temp: 900      },  // +36h — iron window 700→900 (4h)
+    { minutes: A + 2520, temp: peakTemp },  // +42h — peak reached (6h)
+    { minutes: A + 3600, temp: peakTemp },  // +60h — soak + equalize end -> IVa
+    { minutes: A + 3780, temp: 900      },  // +63h — IVa reduction cooling
+    { minutes: A + 4020, temp: 800      },  // +67h — IVb oxidation soak (4h)
+    { minutes: A + 4080, temp: 700      },  // +68h — sealing / cooling
   ];
 
   await pushSession();
@@ -1774,6 +1770,13 @@ function fmtTime(ts) {
 function fmtHM(mins) {
   return `${String(Math.floor(mins/60)).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`;
 }
+function clockAt(mins) {
+  const base = (session && session.startTime) ? session.startTime : Date.now();
+  const dt = new Date(base + mins*60000);
+  const p2 = n => String(n).padStart(2,'0');
+  return { hm: p2(dt.getHours())+':'+p2(dt.getMinutes()), dm: p2(dt.getDate())+'.'+p2(dt.getMonth()+1), dt };
+}
+function clockPlan(mins){ const c = clockAt(mins); return c.dm + ' ' + c.hm; }
 
 function chimneyLabel(c) { return {none:'Нема',white:'Білий',black:'Чорний',flame:'Вогонь'}[c]||c; }
 function chimneyClass(c) { return {none:'ch-none',white:'ch-white',black:'ch-black',flame:'ch-flame'}[c]||''; }
@@ -2138,7 +2141,7 @@ function renderPlan() {
     const curve = session?.plannedCurve||[];
     cl.innerHTML = curve.length ? curve.map((p,i)=>`
       <div class="plan-row">
-        <div class="plan-time">${fmtHM(p.minutes)}</div>
+        <div class="plan-time">${(session && session.startTime) ? clockPlan(p.minutes) : fmtHM(p.minutes)}</div>
         <div class="plan-arrow">→</div>
         <div class="plan-temp">${p.temp}°C</div>
         <button class="del-btn" onclick="delPlanPoint(${i})">×</button>
@@ -2541,10 +2544,22 @@ function drawTempChart() {
     ctx.fillStyle=dc[e.chimney]||'#fff'; ctx.fill();
   });
 
-  // X axis labels
+  // Day separators at each local midnight + date labels
+  const _p2 = n => String(n).padStart(2,'0');
+  let _mid = new Date(st); _mid.setHours(24,0,0,0);
+  for (let tt=_mid.getTime(); tt < st + maxMin*60000; tt += 86400000) {
+    const mm = (tt-st)/60000; if (mm<=0) continue;
+    const xx = xS(mm);
+    ctx.save(); ctx.setLineDash([2,3]); ctx.strokeStyle='rgba(74,55,40,.5)'; ctx.lineWidth=0.5;
+    ctx.beginPath(); ctx.moveTo(xx,pad.top); ctx.lineTo(xx,H-pad.bottom); ctx.stroke(); ctx.restore();
+    const _d=new Date(tt); ctx.fillStyle='#6b5140'; ctx.font='7px serif'; ctx.textAlign='center';
+    ctx.fillText(_p2(_d.getDate())+'.'+_p2(_d.getMonth()+1), xx, pad.top+7);
+  }
+
+  // X axis labels — wall-clock time of day
   ctx.fillStyle='#4a3728'; ctx.font='8px serif'; ctx.textAlign='center';
   const xTicks = [0,.25,.5,.75,1].map(f=>Math.round(f*maxMin));
-  xTicks.forEach(m=>ctx.fillText(fmtHM(m), xS(m), H-4));
+  xTicks.forEach(m=>{ const _d=new Date(st+m*60000); ctx.fillText(_p2(_d.getHours())+':'+_p2(_d.getMinutes()), xS(m), H-4); });
 }
 
 function drawChimneyChart() {
