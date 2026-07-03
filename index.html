@@ -890,7 +890,20 @@ canvas { width:100% !important; display:block; }
       <input id="settings-fb-url" type="url" placeholder="https://xxx-default-rtdb.firebaseio.com">
     </div>
     <button onclick="saveSettings()" class="btn-primary">Зберегти</button>
-    <button onclick="closeModal('modal-settings')" class="btn-secondary">Скасувати</button>
+
+    <div class="divider"></div>
+    <div style="font-size:0.72rem;color:var(--blush);margin-bottom:6px;font-family:'Cinzel',serif;letter-spacing:0.06em">КЕРУВАННЯ СЕСІЄЮ ЗА КОДОМ</div>
+    <div style="font-size:0.66rem;color:var(--smoke);margin-bottom:8px;line-height:1.5">Завершити чи видалити випал за його кодом — навіть якщо на цьому пристрої ти не адмін.</div>
+    <div class="inp-grp">
+      <input id="manage-code" type="text" placeholder="Код сесії (напр. LY7RAJ)" maxlength="6" style="text-transform:uppercase">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button onclick="endSessionByCode()" class="btn-secondary" style="flex:1;margin:0">Завершити</button>
+      <button onclick="deleteSessionByCode()" class="btn-secondary btn-danger" style="flex:1;margin:0">Видалити</button>
+    </div>
+
+    <div class="divider"></div>
+    <button onclick="closeModal('modal-settings')" class="btn-secondary">Закрити</button>
   </div>
 </div>
 
@@ -1256,6 +1269,16 @@ async function fbSet(path, data) {
   } catch { return false; }
 }
 
+async function fbDelete(path) {
+  if (!CFG.fbUrl) return false;
+  try {
+    const tok = await ensureAuth();
+    const qs = tok ? `?auth=${tok}` : '';
+    const r = await fetch(`${CFG.fbUrl}/${path}.json${qs}`, { method:'DELETE' });
+    return r.ok;
+  } catch { return false; }
+}
+
 // ── SYNC ───────────────────────────────────────────────────────────────────
 function startSync() {
   stopSync();
@@ -1396,6 +1419,45 @@ async function confirmEnd() {
   toast('Випал завершено');
   renderAll();
   showTab('history');
+}
+
+async function endSessionByCode() {
+  const code = (document.getElementById('manage-code').value || '').trim().toUpperCase();
+  if (code.length < 4) { toast('Введіть код сесії'); return; }
+  if (!CFG.fbUrl) { toast('Немає підключення до Firebase'); return; }
+  const data = await fbGet(`sessions/${code}`);
+  if (!data)        { toast('Сесію не знайдено: ' + code); return; }
+  if (data.endTime) { toast('Сесія вже завершена'); return; }
+  data.endTime = Date.now();
+  const ok = await fbSet(`sessions/${code}`, data);
+  if (!ok) { toast('Не вдалося завершити — перевір звʼязок'); return; }
+  toast('Випал завершено: ' + code);
+  if (session && session.id === code) {
+    session.endTime = data.endTime;
+    stopSync();
+    renderAll();
+    closeModal('modal-settings');
+    showTab('history');
+  } else {
+    document.getElementById('manage-code').value = '';
+  }
+}
+
+async function deleteSessionByCode() {
+  const code = (document.getElementById('manage-code').value || '').trim().toUpperCase();
+  if (code.length < 4) { toast('Введіть код сесії'); return; }
+  if (!CFG.fbUrl) { toast('Немає підключення до Firebase'); return; }
+  if (!confirm('Видалити сесію ' + code + ' назавжди? Це не можна скасувати.')) return;
+  const ok = await fbDelete(`sessions/${code}`);
+  await fbDelete(`live/${code}`);
+  if (!ok) { toast('Не вдалося видалити — перевір звʼязок'); return; }
+  toast('Сесію видалено: ' + code);
+  if (session && session.id === code) {
+    closeModal('modal-settings');
+    backToHome();
+  } else {
+    document.getElementById('manage-code').value = '';
+  }
 }
 
 function backToHome() {
