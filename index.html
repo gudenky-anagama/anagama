@@ -2743,6 +2743,8 @@ function drawStats() {
   // 0) Guest deep-link: ?join=CODE -> join straight as guest (no create option)
   const _joinCode = (new URLSearchParams(location.search).get('join') || '').trim().toUpperCase();
   if (_joinCode && CFG.fbUrl) {
+    // strip ?join from the address bar so reloads don't force guest again
+    try { history.replaceState({}, '', location.pathname); } catch (e) {}
     setSyncDot('syncing');
     const data = await fbGet(`sessions/${_joinCode}`);
     if (data) {
