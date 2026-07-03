@@ -581,7 +581,6 @@ canvas { width:100% !important; display:block; }
       <div class="hdr-code" onclick="copyCode()">
         Код: <span id="hdr-code-val" class="cv">——————</span>
       </div>
-      <div id="guest-link-btn" class="admin-only" onclick="copyGuestLink()" style="display:none;font-size:0.58rem;color:var(--blue);cursor:pointer;margin-top:2px">🔗 посилання для учасників</div>
       <div id="guest-badge" class="guest-only" style="display:none;font-size:0.58rem;color:var(--blush);font-family:'Cinzel',serif;letter-spacing:0.04em;margin-top:2px">👤 Гостьовий режим</div>
     </div>
     <div class="hdr-right">
@@ -2154,7 +2153,7 @@ function renderStatus() {
         <div style="font-size:0.68rem;color:var(--smoke)">${t({uk:'з',en:'since'})} ${new Date(session.startTime).toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'})}</div>
       </div>
       <div class="divider"></div>
-      ${isAdmin ? `<button class="btn-secondary btn-danger" onclick="showModal('modal-end')">${t({uk:'Завершити Випал',en:'End Firing'})}</button>` : `<div style="font-size:0.68rem;color:rgba(245,237,230,0.3);text-align:center;padding:6px;font-family:'Cinzel',serif;letter-spacing:0.08em">${t({uk:'Завершення — тільки для адміна',en:'Ending — admin only'})}</div>`}
+      ${isAdmin ? `<button class="btn-secondary" onclick="copyGuestLink()" style="margin-bottom:8px">🔗 ${t({uk:'Посилання для учасників',en:'Participant link'})}</button><button class="btn-secondary btn-danger" onclick="showModal('modal-end')">${t({uk:'Завершити Випал',en:'End Firing'})}</button>` : `<div style="font-size:0.68rem;color:rgba(245,237,230,0.3);text-align:center;padding:6px;font-family:'Cinzel',serif;letter-spacing:0.08em">${t({uk:'Завершення — тільки для адміна',en:'Ending — admin only'})}</div>`}
     </div>
 
     ${holdHtml}
