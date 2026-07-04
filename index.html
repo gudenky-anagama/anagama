@@ -549,7 +549,7 @@ canvas { width:100% !important; display:block; }
     <div class="home-tagline">Журнал Випалу · Kiln Log</div>
 
     <div class="home-card">
-      <div style="font-size:0.72rem;color:var(--smoke);text-align:center;margin-bottom:12px;line-height:1.55">Учасник — введи код від організатора.<br>Організатор — створи випал.</div>
+      <div style="font-size:0.72rem;color:var(--smoke);text-align:center;margin-bottom:12px;line-height:1.55">Організатор — введи код, щоб керувати випалом (повний доступ), або створи новий.<br>Учасники заходять за гостьовим посиланням.</div>
 
       <div class="join-row">
         <input id="join-code" type="text" placeholder="Код сесії (напр. KB4MXZ)" maxlength="6">
@@ -1403,6 +1403,8 @@ async function joinSession() {
   }
 
   localStorage.setItem(LS.sessId, code);
+  localStorage.setItem('anagama_admin_id', code);   // base URL + code = full admin access
+  isAdmin = true;
   showApp();
   startSync();
   renderAll();
@@ -1525,6 +1527,7 @@ async function addEntry() {
 
 // ── LIVE TELEMETRY + CURRENT READING ─────────────────────────────────────────
 function numOrNull(v){ return (v==null || isNaN(v)) ? null : Number(v); }
+function isSensor(e){ return !!(e && e.source === 'sensor'); }
 function liveFresh(){ return !!(liveData && liveTs && (Date.now() - liveTs < 45000)); }
 function currentReading(){
   if (liveFresh()) {
@@ -2159,11 +2162,15 @@ function renderStatus() {
     ${holdHtml}
     ${phaseHtml}
 
-    ${entries.length>0 ? `
+    ${(() => {
+      const human = entries.filter(e => !isSensor(e));
+      return human.length>0 ? `
       <div class="card">
-        <h2>${t({uk:'Останні Записи',en:'Recent Entries'})}</h2>
-        ${[...entries].reverse().slice(0,6).map(entryRow).join('')}
-      </div>` : ''}`;
+        <h2>${t({uk:'Останні записи учасників',en:'Recent participant entries'})}</h2>
+        ${[...human].reverse().slice(0,6).map(entryRow).join('')}
+        <div style="text-align:center;margin-top:8px"><span onclick="showTab('history')" style="font-size:.7rem;color:var(--blue);cursor:pointer">${t({uk:'усі записи в «Архіві» →',en:'all entries in Log book →'})}</span></div>
+      </div>` : '';
+    })()}`;
 
   if (tickTimer) clearInterval(tickTimer);
   tickTimer = setInterval(()=>{
@@ -2326,36 +2333,54 @@ async function saveShiftNote(shiftId) {
 }
 
 // ── RENDER: HISTORY ─────────────────────────────────────────────────────────
+let histFilter = 'all';   // all | people | sensor
+function setHistFilter(f){ histFilter = f; loadHistory(); }
+
+function currentLogHtml() {
+  if (!session || session.endTime) return '';
+  const ents   = getEntries();
+  const people = ents.filter(e => !isSensor(e));
+  const sensor = ents.filter(e => isSensor(e));
+  const shown  = histFilter==='people' ? people : histFilter==='sensor' ? sensor : ents;
+  const chip = (key,label,n) => `<button onclick="setHistFilter('${key}')" style="flex:1;padding:7px 4px;border:none;border-radius:8px;font-size:0.72rem;cursor:pointer;background:${histFilter===key?'var(--ember)':'rgba(245,237,230,0.08)'};color:${histFilter===key?'#1a1410':'var(--smoke)'};font-weight:${histFilter===key?'700':'400'}">${label} ${n}</button>`;
+  return `
+    <div class="card">
+      <h2>${t({uk:'Журнал поточного випалу',en:'Current firing log'})}</h2>
+      <div style="display:flex;gap:6px;margin-bottom:10px">
+        ${chip('all',    t({uk:'Усі',en:'All'}),      ents.length)}
+        ${chip('people', t({uk:'Учасники',en:'People'}), people.length)}
+        ${chip('sensor', t({uk:'Сенсор',en:'Sensor'}),   sensor.length)}
+      </div>
+      ${shown.length ? [...shown].reverse().map(entryRow).join('') : `<div class="empty-state">${t({uk:'Немає записів',en:'No entries'})}</div>`}
+    </div>`;
+}
+
 async function loadHistory() {
   const el = document.getElementById('history-list');
   if (!el) return;
-  el.innerHTML = '<div class="empty-state">Завантаження...</div>';
+
+  const curHtml = currentLogHtml();
+  el.innerHTML = curHtml || '<div class="empty-state">Завантаження...</div>';
 
   let sessions = [];
-
   if (CFG.fbUrl) {
     const all = await fbGet('sessions');
     if (all) {
       sessions = Object.values(all).filter(s=>s&&s.endTime).sort((a,b)=>b.startTime-a.startTime);
     }
   }
-
-  // Also include current session if ended
   if (session?.endTime && !sessions.find(s=>s.id===session.id)) {
     sessions.unshift(session);
   }
 
-  if (sessions.length===0) {
-    el.innerHTML = '<div class="empty-state">Завершених випалів ще немає</div>';
-    return;
-  }
-
-  el.innerHTML = sessions.map(s=>{
-    const ents = s.entries ? Object.values(s.entries) : [];
-    const maxT = ents.length ? Math.max(...ents.map(e=>e.temp)) : 0;
-    const dur = fmtDur(s.endTime-s.startTime);
-    const heavy = ents.filter(e=>e.chimney==='black').length;
-    return `
+  let pastHtml = '';
+  if (sessions.length > 0) {
+    pastHtml = `<div style="font-size:0.72rem;color:var(--blush);margin:16px 4px 8px;font-family:'Cinzel',serif;letter-spacing:0.08em">МИНУЛІ ВИПАЛИ</div>` + sessions.map(s=>{
+      const ents = s.entries ? Object.values(s.entries) : [];
+      const maxT = ents.length ? Math.max(...ents.map(e=>e.temp||e.tempFirebox||0)) : 0;
+      const dur = fmtDur(s.endTime-s.startTime);
+      const heavy = ents.filter(e=>e.chimney==='black').length;
+      return `
       <div class="hist-item" onclick="showDetail('${s.id}')">
         <div class="hist-title">${s.name}</div>
         <div class="hist-meta">${new Date(s.startTime).toLocaleDateString('uk-UA',{day:'numeric',month:'long',year:'numeric'})}</div>
@@ -2366,7 +2391,12 @@ async function loadHistory() {
           <div class="stat"><div class="stat-val" style="color:${heavy?'var(--red)':'var(--green)'}">${heavy}</div><div class="stat-lbl">Чорн. дим</div></div>
         </div>
       </div>`;
-  }).join('');
+    }).join('');
+  } else if (!curHtml) {
+    pastHtml = '<div class="empty-state">Завершених випалів ще немає</div>';
+  }
+
+  el.innerHTML = curHtml + pastHtml;
 }
 
 let currentDetailSession = null;
@@ -2751,7 +2781,7 @@ function drawStats() {
       lastHash = JSON.stringify(data);
       localStorage.setItem(LS.sessId, _joinCode);
       localStorage.setItem('anagama_session_data', JSON.stringify(data));
-      isAdmin = localStorage.getItem('anagama_admin_id') === _joinCode; // participants -> guest
+      isAdmin = false; // ?join link is always guest access (view + data entry only)
       showApp();
       renderAll();
       startSync();
