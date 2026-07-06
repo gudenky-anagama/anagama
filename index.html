@@ -923,7 +923,7 @@ canvas { width:100% !important; display:block; }
       <input id="rye-peak" type="number" placeholder="1280" value="1280" min="1200" max="1350" inputmode="numeric">
     </div>
     <div style="font-size:0.72rem;color:var(--smoke);font-style:italic;margin-bottom:14px;line-height:1.7">
-      12 год 200° · →700 (25°/год) · →900 (вікно заліза, 4 год) · →пік (6 год) · витримка 18 год · IVa→900 · IVb→800 (4 год) · запечатування
+      12 год 200° · →700 (25°/год) · →900 (вікно заліза, 4 год) · →пік (6 год) · витримка 18 год · IVa 1180→900 (≥4 год) · IVb 900→800 · запечатування
     </div>
     <button onclick="confirmRyeProtocol()" class="btn-primary">Завантажити · Load</button>
     <button onclick="closeModal('modal-rye')" class="btn-secondary">Скасувати · Cancel</button>
@@ -982,10 +982,11 @@ function renderColor(){
     </div>
 
     <div class="card">
-      <h2>${T('Два вікна','Two windows')}</h2>
+      <h2>${T('Три вікна','Three windows')}</h2>
       <div style="font-size:.85rem;line-height:1.7">
         <div style="margin-bottom:8px"><span style="color:#3cc6ff;font-weight:700">↑ 700–900 °C ${T('(підйом)','(climb)')}</span><br>${T('ЧИСТЕ ОКИСНЕННЯ. Тут закладається колір — тримай залізо як Fe₂O₃.','CLEAN OXIDATION. Colour is set here — keep iron as Fe₂O₃.')}</div>
-        <div><span style="color:#3cc6ff;font-weight:700">↓ 900→800 °C ${T('(охолодження, ≥4 год)','(cooling, ≥4 h)')}</span><br>${T('ОКИСНЕННЯ. Серце кольору — зворотний strike, мінімум 4 години.','OXIDATION. Heart of colour — reverse strike, at least 4 hours.')}</div>
+        <div style="margin-bottom:8px"><span style="color:#ff5a3c;font-weight:700">↓ 1180→900 °C ${T('(охолодження, ≥4 год)','(cooling, ≥4 h)')}</span><br>${T('ВАЖКЕ ВІДНОВЛЕННЯ. Основне відновне охолодження — не менше 4 годин, залізо лишається рухливим біля поверхні.','HEAVY REDUCTION. Main reduction cooling — at least 4 hours; iron stays mobile near the surface.')}</div>
+        <div><span style="color:#3cc6ff;font-weight:700">↓ 900→800 °C ${T('(до запечатування)','(until sealing)')}</span><br>${T('ОКИСНЕННЯ. Серце кольору — зворотний strike: залізо виходить назовні й «запалюється» в рожево-червоний.','OXIDATION. Heart of colour — the reverse strike: iron migrates out and “ignites” into pink-red.')}</div>
       </div>
     </div>
 
@@ -1004,8 +1005,8 @@ function renderColor(){
       <div style="font-size:.82rem;line-height:1.8">
         <div>☐ ${T('700–900 °C — окиснення (зонд < 0.45 В)','700–900 °C — oxidation (probe < 0.45 V)')}</div>
         <div>☐ ${T('Пік 1250–1300 °C топка, не вище 1350','Peak 1250–1300 °C firebox, not above 1350')}</div>
-        <div>☐ ${T('IVa — спершу перекрити трубу, тоді важке відновлення','IVa — close chimney first, then heavy reduction')}</div>
-        <div>☐ ${T('IVb — окиснення 900→800, мінімум 4 год','IVb — oxidation 900→800, at least 4 h')}</div>
+        <div>☐ ${T('IVa — спершу перекрити трубу, тоді важке відновлення 1180→900, ≥ 4 год','IVa — close chimney first, then heavy reduction 1180→900, ≥ 4 h')}</div>
+        <div>☐ ${T('IVb — окиснення 900→800 до запечатування','IVb — oxidation 900→800 until sealing')}</div>
         <div>☐ ${T('Агент відновлення повністю прогорів перед запечатуванням','Reduction agent fully burnt before sealing')}</div>
         <div>☐ ${T('Запечатати < 800 °C (~13 см², не герметично)','Seal < 800 °C (~13 cm², not airtight)')}</div>
         <div>☐ ${T('~573 °C — не відкривати','~573 °C — do not open')}</div>
@@ -1098,25 +1099,25 @@ const PHASES = [
 
   { num:6, code:'COOL_RED',
     name:{uk:"IVa · Відновне охолодження ⭐", en:"IVa · Reduction cooling ⭐"},
-    band:{uk:"1100 → 900 °C", en:"1100 → 900 °C"},
+    band:{uk:"1180 → 900 °C · ≥ 4 год", en:"1180 → 900 °C · ≥ 4 h"},
     fuel:{uk:"повільне дерево / зелень", en:"slow wood / green vegetation"},
     targetAtm:'reduction',
     atmosphere:{uk:"ВАЖКЕ ВІДНОВЛЕННЯ", en:"heavy REDUCTION"},
     method:{uk:"набивати топку", en:"pack the firebox"},
-    hint:{uk:"⚠️ СПОЧАТКУ ПЕРЕКРИЙ ТРУБУ, тоді відновлюй — інакше протяг занесе холодне повітря й осадить чорний вуглець. Тримай зонд ≥ 0.60 В.",
-          en:"⚠️ CLOSE THE CHIMNEY FIRST, then reduce — otherwise draught pulls cold air and deposits black carbon. Keep probe ≥ 0.60 V."},
-    critical:true },
+    hint:{uk:"⚠️ СПОЧАТКУ ПЕРЕКРИЙ ТРУБУ, тоді відновлюй — інакше протяг занесе холодне повітря й осадить чорний вуглець. Тримай зонд ≥ 0.60 В. Основне відновне охолодження 1180→900 °C має тривати не менше 4 годин.",
+          en:"⚠️ CLOSE THE CHIMNEY FIRST, then reduce — otherwise draught pulls cold air and deposits black carbon. Keep probe ≥ 0.60 V. The main reduction cooling 1180→900 °C must last at least 4 hours."},
+    critical:true, holdHours:4 },
 
   { num:7, code:'HOLD_OX',
     name:{uk:"IVb · Окиснювальна витримка ⭐⭐", en:"IVb · Oxidation soak ⭐⭐"},
-    band:{uk:"900 → 800 °C · ≥ 4 год", en:"900 → 800 °C · ≥ 4 h"},
+    band:{uk:"900 → 800 °C · до запечатування", en:"900 → 800 °C · until sealing"},
     fuel:{uk:"мінімум; впустити повітря", en:"minimal; let air in"},
     targetAtm:'oxidation',
     atmosphere:{uk:"ОКИСНЕННЯ (зворотний strike)", en:"OXIDATION (reverse strike)"},
     method:{uk:"відкрити піддувало й канали", en:"open air inlets & ports"},
-    hint:{uk:"⭐⭐ СЕРЦЕ КОЛЬОРУ. Відкрий повітря, тримай ОКИСНЕННЯ (зонд < 0.45 В) щонайменше 4 год — залізо витягується назовні й окиснюється в рожево-червоний гематит. Перед запечатуванням агент відновлення має ПОВНІСТЮ прогоріти.",
-          en:"⭐⭐ HEART OF COLOUR. Open air, hold OXIDATION (probe < 0.45 V) for at least 4 h — iron migrates out and oxidises into pink-red haematite. The reduction agent must FULLY burn out before sealing."},
-    critical:true, holdHours:4 },
+    hint:{uk:"⭐⭐ СЕРЦЕ КОЛЬОРУ. Відкрий повітря, тримай ОКИСНЕННЯ (зонд < 0.45 В) аж до запечатування (< 800 °C) — залізо витягується назовні й окиснюється в рожево-червоний гематит. Перед запечатуванням агент відновлення має ПОВНІСТЮ прогоріти.",
+          en:"⭐⭐ HEART OF COLOUR. Open air, hold OXIDATION (probe < 0.45 V) all the way to sealing (< 800 °C) — iron migrates out and oxidises into pink-red haematite. The reduction agent must FULLY burn out before sealing."},
+    critical:true },
 
   { num:8, code:'SEAL',
     name:{uk:"Запечатування", en:"Sealing (clamming)"},
@@ -1133,12 +1134,15 @@ function P(code){ return PHASES.find(p => p.code===code) || null; }
 
 // Dynamic alert texts (bilingual)
 const MSG = {
-  holdDoneHead:{uk:"✅ ВИТРИМКУ ЗАВЕРШЕНО", en:"✅ SOAK COMPLETE"},
-  holdDoneMsg:{uk:"4 години окиснювальної витримки 900→800 °C виконано.\nПереконайся, що вугілля стало попелом — і запечатуй (~13 см², не герметично).",
-               en:"4 h oxidation soak 900→800 °C done.\nMake sure coals are ash — then seal (~13 cm², not airtight)."},
-  atmHead:{uk:"⚠️ ВІДНОВЛЕННЯ ПІД ЧАС ВИТРИМКИ", en:"⚠️ REDUCTION DURING SOAK"},
+  holdDoneHead:{uk:"✅ 4 ГОДИНИ IVa ВИКОНАНО", en:"✅ IVa 4 HOURS DONE"},
+  holdDoneMsg:{uk:"Мінімум 4 години відновного охолодження 1180→900 °C виконано.\nКоли температура дійде ~900 °C — переходь в ОКИСНЕННЯ (IVb).",
+               en:"Minimum 4 h of reduction cooling 1180→900 °C done.\nWhen the temperature reaches ~900 °C — switch to OXIDATION (IVb)."},
+  atmHead:{uk:"⚠️ ВІДНОВЛЕННЯ ПІД ЧАС IVb", en:"⚠️ REDUCTION DURING IVb"},
   atmMsg:{uk:"Зонд показує відновлення (≥ 0.60 В), а зараз має бути ОКИСНЕННЯ.\nВідкрий повітря / піддувало. Колір народжується тільки в окисненні.",
            en:"Probe shows reduction (≥ 0.60 V) but this phase needs OXIDATION.\nOpen air / inlets. Colour only forms in oxidation."},
+  atmRedHead:{uk:"⚠️ ВТРАЧЕНО ВІДНОВЛЕННЯ (IVa)", en:"⚠️ REDUCTION LOST (IVa)"},
+  atmRedMsg:{uk:"Зонд показує окиснення (< 0.45 В), а в IVa має бути ВАЖКЕ ВІДНОВЛЕННЯ (≥ 0.60 В).\nПеревір трубу і набий топку.",
+           en:"Probe shows oxidation (< 0.45 V) but IVa needs HEAVY REDUCTION (≥ 0.60 V).\nCheck the chimney and pack the firebox."},
 };
 
 const CRIT_THRESHOLDS = [
@@ -1150,14 +1154,14 @@ const CRIT_THRESHOLDS = [
     head:{uk:"🔥 СТЕЛЯ ТЕМПЕРАТУРИ", en:"🔥 TEMPERATURE CEILING"},
     msg:{uk:"Топка наближається до 1350 °C — НЕ перевищувати!\nРобоча на піку: 1250–1300 °C топка, 1200–1250 °C камера.",
          en:"Firebox approaching 1350 °C — do NOT exceed!\nWorking peak: 1250–1300 °C firebox, 1200–1250 °C chamber."} },
-  { temp:1100, dir:'down', code:'IVA',
+  { temp:1180, dir:'down', code:'IVA',
     head:{uk:"🌑 IVa — ВІДНОВНЕ ОХОЛОДЖЕННЯ", en:"🌑 IVa — REDUCTION COOLING"},
-    msg:{uk:"СПОЧАТКУ ПЕРЕКРИЙ ТРУБУ, тоді важке відновлення (зонд ≥ 0.60 В).\nІнакше холодне повітря → чорний вуглець на виробах.",
-         en:"CLOSE THE CHIMNEY FIRST, then heavy reduction (probe ≥ 0.60 V).\nOtherwise cold air → black carbon on the ware."} },
+    msg:{uk:"СПОЧАТКУ ПЕРЕКРИЙ ТРУБУ, тоді важке відновлення (зонд ≥ 0.60 В).\nІнакше холодне повітря → чорний вуглець на виробах.\nТримай 1180→900 °C не менше 4 годин. Таймер пішов.",
+         en:"CLOSE THE CHIMNEY FIRST, then heavy reduction (probe ≥ 0.60 V).\nOtherwise cold air → black carbon on the ware.\nHold 1180→900 °C for at least 4 hours. Timer started."} },
   { temp:900,  dir:'down', code:'IVB_START',
     head:{uk:"⭐⭐ IVb — СТАРТ ОКИСНЮВАЛЬНОЇ ВИТРИМКИ", en:"⭐⭐ IVb — OXIDATION SOAK START"},
-    msg:{uk:"Серце кольору. Переходь в ОКИСНЕННЯ: відкрий повітря / піддувало (зонд < 0.45 В).\nТримай 900→800 °C щонайменше 4 години. Таймер пішов.",
-         en:"Heart of colour. Switch to OXIDATION: open air / inlets (probe < 0.45 V).\nHold 900→800 °C for at least 4 hours. Timer started."} },
+    msg:{uk:"Серце кольору. Переходь в ОКИСНЕННЯ: відкрий повітря / піддувало (зонд < 0.45 В).\nТримай окиснення 900→800 °C аж до запечатування.",
+         en:"Heart of colour. Switch to OXIDATION: open air / inlets (probe < 0.45 V).\nHold oxidation 900→800 °C all the way to sealing."} },
   { temp:800,  dir:'down', code:'SEALCHK',
     head:{uk:"🔒 ЧАС ЗАПЕЧАТУВАТИ", en:"🔒 TIME TO SEAL"},
     msg:{uk:"Витримку завершено? Вугілля = попіл?\nЗапечатуй отвори ~13 см² — НЕ герметично.",
@@ -1566,7 +1570,7 @@ function detectPhase(tempOverride){
     if (temp < 900) return P('FE_WINDOW');
     return P('RISE_PEAK');
   }
-  if (temp >= 1100) return P('PEAK');   // soak persists down to 1100; IVa cooling is 1100->900 per protocol
+  if (temp >= 1180) return P('PEAK');   // soak persists down to 1180; IVa cooling is 1180->900 per protocol
   if (temp >= 900)  return P('COOL_RED');   // IVa
   if (temp >= 800)  return P('HOLD_OX');    // IVb
   return P('SEAL');
@@ -1583,12 +1587,12 @@ function checkCriticalPoints(temp){
     if (_alerted.has(ct.code)) continue;
     let fire = false;
     if (ct.dir==='over')      fire = (temp >= ct.temp);
-    else if (ct.dir==='up')   fire = (goingUp && Math.abs(temp-ct.temp) <= 25);
-    else if (ct.dir==='down') fire = (!goingUp && peaked && Math.abs(temp-ct.temp) <= 25);
+    else if (ct.dir==='up')   fire = goingUp && ((prev!=null && prev < ct.temp && temp >= ct.temp) || Math.abs(temp-ct.temp) <= 25);
+    else if (ct.dir==='down') fire = !goingUp && peaked && ((prev!=null && prev > ct.temp && temp <= ct.temp) || Math.abs(temp-ct.temp) <= 25);
     if (!fire) continue;
     _alerted.add(ct.code);
     showCritAlert(t(ct.head), t(ct.msg));
-    if (ct.code==='IVB_START') startHoldTimer();
+    if (ct.code==='IVA') startHoldTimer();
     break;
   }
   checkProtocol();
@@ -1599,20 +1603,28 @@ function startHoldTimer(){
   if (!session) return;
   if (!session.holdStartTs) { session.holdStartTs = Date.now(); pushSession(); }
 }
-function holdHoursTarget(){ const p = P('HOLD_OX'); return (p && p.holdHours) ? p.holdHours : 4; }
+function holdHoursTarget(){ const p = P('COOL_RED'); return (p && p.holdHours) ? p.holdHours : 4; }
 function checkProtocol(){
   const ph = detectPhase();
   const r  = currentReading();
   const atm = atmFromVolts(r ? r.volts : null);
-  if (ph && ph.code==='HOLD_OX') {
+  if (ph && ph.code==='COOL_RED') {
     startHoldTimer();
     if (session && session.holdStartTs) {
       const elapsed = Date.now() - session.holdStartTs;
-      if (elapsed >= holdHoursTarget()*3600000 && !_alerted.has('IVB_DONE')) {
-        _alerted.add('IVB_DONE');
+      if (elapsed >= holdHoursTarget()*3600000 && !_alerted.has('IVA_DONE')) {
+        _alerted.add('IVA_DONE');
         showCritAlert(t(MSG.holdDoneHead), t(MSG.holdDoneMsg));
       }
     }
+    // IVa вимагає важкого відновлення — тривога, якщо зонд пішов в окиснення
+    if (atm==='oxidation') {
+      if (_atmAlarmArmed) { _atmAlarmArmed = false; showCritAlert(t(MSG.atmRedHead), t(MSG.atmRedMsg)); }
+    } else if (atm==='reduction') {
+      _atmAlarmArmed = true;
+    }
+  }
+  if (ph && ph.code==='HOLD_OX') {
     if (atm==='reduction') {
       if (_atmAlarmArmed) { _atmAlarmArmed = false; showCritAlert(t(MSG.atmHead), t(MSG.atmMsg)); }
     } else if (atm==='oxidation') {
@@ -1670,9 +1682,10 @@ async function confirmRyeProtocol() {
     { minutes: A + 1920, temp: 700      },  // +32h — end climb to 700
     { minutes: A + 2160, temp: 900      },  // +36h — iron window 700→900 (4h)
     { minutes: A + 2520, temp: peakTemp },  // +42h — peak reached (6h)
-    { minutes: A + 3600, temp: peakTemp },  // +60h — soak + equalize end -> IVa
-    { minutes: A + 3780, temp: 900      },  // +63h — IVa reduction cooling
-    { minutes: A + 4020, temp: 800      },  // +67h — IVb oxidation soak (4h)
+    { minutes: A + 3600, temp: peakTemp },  // +60h — soak + equalize end
+    { minutes: A + 3660, temp: 1180     },  // +61h — natural drop to 1180 -> IVa starts
+    { minutes: A + 3900, temp: 900      },  // +65h — IVa reduction cooling 1180->900 (>=4h)
+    { minutes: A + 4020, temp: 800      },  // +67h — IVb oxidation 900->800 (natural cooling)
     { minutes: A + 4080, temp: 700      },  // +68h — sealing / cooling
   ];
 
@@ -2097,19 +2110,25 @@ function renderStatus() {
       </div>`;
   }
 
-  // IVb 4h oxidation soak timer
+  // IVa 4h reduction-cooling timer + IVb oxidation card
   let holdHtml = '';
-  if (curPhase && curPhase.code==='HOLD_OX') {
+  if (curPhase && curPhase.code==='COOL_RED') {
     if (!session.holdStartTs) { session.holdStartTs = Date.now(); pushSession(); }
     const remMs = Math.max(0, holdHoursTarget()*3600000 - (Date.now()-session.holdStartTs));
     const done  = remMs<=0;
-    holdHtml = `<div class="card" style="border:1px solid ${done?'#2ea06e':'#3cc6ff'};background:${done?'rgba(46,160,110,.08)':'rgba(60,198,255,.06)'}">
-        <div style="font-family:'Cinzel',serif;letter-spacing:.06em;font-size:.72rem;color:${done?'#7fd7a8':'#8fd4f5'};margin-bottom:4px">⭐⭐ ${t({uk:'ОКИСНЮВАЛЬНА ВИТРИМКА 900→800',en:'OXIDATION SOAK 900→800'})}</div>
+    holdHtml = `<div class="card" style="border:1px solid ${done?'#2ea06e':'#ff5a3c'};background:${done?'rgba(46,160,110,.08)':'rgba(255,90,60,.06)'}">
+        <div style="font-family:'Cinzel',serif;letter-spacing:.06em;font-size:.72rem;color:${done?'#7fd7a8':'#ffb3a0'};margin-bottom:4px">⭐ ${t({uk:'ВІДНОВНЕ ОХОЛОДЖЕННЯ IVa · 1180→900',en:'REDUCTION COOLING IVa · 1180→900'})}</div>
         <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
-          <div id="hold-timer" style="font-family:'Cinzel',serif;font-size:2rem;font-weight:700;color:${done?'#2ea06e':'#3cc6ff'}">${done?t({uk:'ГОТОВО',en:'DONE'}):fmtHold(remMs)}</div>
-          <div style="font-size:.72rem;color:var(--smoke)">${done?t({uk:'4 год виконано — можна запечатувати',en:'4 h done — ready to seal'}):t({uk:'залишилось до 4 год',en:'left of 4 h'})}</div>
+          <div id="hold-timer" style="font-family:'Cinzel',serif;font-size:2rem;font-weight:700;color:${done?'#2ea06e':'#ff5a3c'}">${done?t({uk:'≥ 4 ГОД Є',en:'≥ 4 H DONE'}):fmtHold(remMs)}</div>
+          <div style="font-size:.72rem;color:var(--smoke)">${done?t({uk:'мінімум виконано — далі до ~900 °C і в окиснення',en:'minimum done — continue to ~900 °C, then oxidise'}):t({uk:'залишилось до мінімальних 4 год',en:'left of the 4 h minimum'})}</div>
         </div>
-        <div style="font-size:.72rem;color:var(--blush);margin-top:6px">${t({uk:'Тримай ОКИСНЕННЯ (зонд < 0.45 В). Дзвінок при відновленні.',en:'Hold OXIDATION (probe < 0.45 V). Alarm if it goes reductive.'})}</div>
+        <div style="font-size:.72rem;color:var(--blush);margin-top:6px">${t({uk:'Тримай ВІДНОВЛЕННЯ (зонд ≥ 0.60 В). Дзвінок, якщо піде в окиснення.',en:'Hold REDUCTION (probe ≥ 0.60 V). Alarm if it goes oxidising.'})}</div>
+      </div>`;
+  }
+  if (curPhase && curPhase.code==='HOLD_OX') {
+    holdHtml = `<div class="card" style="border:1px solid #3cc6ff;background:rgba(60,198,255,.06)">
+        <div style="font-family:'Cinzel',serif;letter-spacing:.06em;font-size:.72rem;color:#8fd4f5;margin-bottom:4px">⭐⭐ ${t({uk:'ОКИСНЮВАЛЬНА ВИТРИМКА IVb · 900→800',en:'OXIDATION SOAK IVb · 900→800'})}</div>
+        <div style="font-size:.8rem;line-height:1.55">${t({uk:'Тримай ОКИСНЕННЯ (зонд < 0.45 В) аж до запечатування (< 800 °C). Вугілля має повністю прогоріти. Дзвінок при відновленні.',en:'Hold OXIDATION (probe < 0.45 V) all the way to sealing (< 800 °C). Coals must fully burn out. Alarm if it goes reductive.'})}</div>
       </div>`;
   }
 
@@ -2137,7 +2156,7 @@ function renderStatus() {
         <span class="s-badge s-active">${t({uk:'Активний',en:'Active'})}</span>
       </div>
       <div style="font-size:0.65rem;color:rgba(245,237,230,0.45);margin-bottom:8px;font-family:'Cinzel',serif;letter-spacing:0.05em">
-        ${t({uk:'Старт',en:'Start'})}: ${startDateStr} &nbsp; ${srcPill}
+        ${t({uk:'Старт',en:'Start'})}: ${startDateStr} &nbsp;·&nbsp; ${(()=>{const h=(Date.now()-session.startTime)/3600000;return h>=1?Math.floor(h)+' '+t({uk:'год від старту',en:'h since start'}):Math.round(h*60)+' '+t({uk:'хв від старту',en:'min since start'});})()} &nbsp; ${srcPill}
       </div>
       <div class="temp-display" style="align-items:center;flex-wrap:wrap;gap:10px">
         <div style="display:flex;align-items:baseline;gap:6px">
@@ -2460,8 +2479,8 @@ function exportCSV(s) {
     woodAmountLabel(e.woodAmount||''),
     stokingLabel(e.stokingMethod||''),
     e.person||'',
-    (e.note||'').replace(/"/g,'""'),
-  ].map(v=>`"${v}"`).join(';'));
+    e.note||'',
+  ].map(v=>`"${String(v==null?'':v).replace(/"/g,'""')}"`).join(';'));
 
   const csv  = BOM + [cols.join(';'), ...rows].join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
