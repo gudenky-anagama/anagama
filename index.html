@@ -911,8 +911,12 @@ canvas { width:100% !important; display:block; }
   <div class="modal-box">
     <div class="modal-title">Протокол рум'янцю · Flashing</div>
     <div class="modal-text" style="font-size:0.8rem;line-height:1.6">
-      Планова крива на <b>60 год</b> до IVa, прив'язана до <b>наступної цілої години</b> після старту (щоб час був рівний).<br>
-      <span style="font-size:0.72rem;opacity:0.7">Поточні точки кривої буде замінено.</span>
+      Планова крива на <b>60 год</b> до IVa, прив'язана до <b>наступної цілої години</b> після старту.<br>
+      <span style="font-size:0.72rem;opacity:0.7">Якщо піч розпалили пізніше за створення сесії — вкажи затримку. Поточні точки буде замінено.</span>
+    </div>
+    <div class="inp-grp">
+      <label>Затримка старту випалу, год (0 = від створення сесії)</label>
+      <input id="rye-start-h" type="number" placeholder="0" value="0" min="0" step="0.5" inputmode="decimal">
     </div>
     <div class="inp-grp">
       <label>Цільовий пік °C (Cone 10 ≈ 1280)</label>
@@ -1641,6 +1645,7 @@ function dismissAlert() {
 // ── RUM'YANETS PROTOCOL (planned curve preset) ───────────────────────────────
 function openRyeModal() {
   if (!session) { toast(t({uk:'Спочатку почніть випал', en:'Start a firing first'})); return; }
+  document.getElementById('rye-start-h').value = 0;
   document.getElementById('rye-peak').value = 1280;
   showModal('modal-rye');
 }
@@ -1649,10 +1654,13 @@ async function confirmRyeProtocol() {
   if (!session) return;
   closeModal('modal-rye');
   const peakTemp = parseInt(document.getElementById('rye-peak').value) || 1280;
-  // Anchor the plan to the NEXT whole hour after firing start, so every
-  // milestone lands on a round clock time.
-  const d = new Date(session.startTime);
-  const A = (d.getMinutes() === 0) ? 0 : (60 - d.getMinutes());  // minutes start -> next :00
+  const offsetH  = parseFloat(document.getElementById('rye-start-h').value) || 0;
+  // Plan starts offsetH hours after session start (use when the kiln was lit later),
+  // rounded up to the next whole hour so milestones land on round clock times.
+  const anchorTs = session.startTime + offsetH * 3600000;
+  const ad = new Date(anchorTs);
+  const extra = (ad.getMinutes() === 0) ? 0 : (60 - ad.getMinutes());
+  const A = Math.round(offsetH * 60) + extra;   // minutes from session start to plan point 0
   // Confirmed 60 h plan (hours from the anchor):
   //  0=200 · 12h=200 (pre-heat) · 32h=700 (climb 25°/h) · 36h=900 (iron window 4h)
   //  42h=peak (climb 6h) · 60h=peak (soak+equalize 18h) · then IVa/IVb cooling
