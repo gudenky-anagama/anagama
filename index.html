@@ -1566,7 +1566,7 @@ function detectPhase(tempOverride){
     if (temp < 900) return P('FE_WINDOW');
     return P('RISE_PEAK');
   }
-  if (temp >= 1240) return P('PEAK');
+  if (temp >= 1100) return P('PEAK');   // soak persists down to 1100; IVa cooling is 1100->900 per protocol
   if (temp >= 900)  return P('COOL_RED');   // IVa
   if (temp >= 800)  return P('HOLD_OX');    // IVb
   return P('SEAL');
