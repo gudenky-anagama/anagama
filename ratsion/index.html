@@ -1,0 +1,690 @@
+<meta charset="utf-8">
+<title>Раціон</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap&subset=cyrillic" rel="stylesheet">
+
+<style>
+:root{
+  --ground:#E6E9E6;
+  --panel:#FBFCFB;
+  --ink:#15201D;
+  --ink-2:#5A6B65;
+  --ink-3:#93A19B;
+  --rule:#CFD6D2;
+  --ok:#3F6B4E;
+  --warn:#B07A16;
+  --alarm:#9E2B1E;
+  --steel:#2C4A52;
+  --r:3px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:15px;line-height:1.45;
+  padding-bottom:88px}
+.wrap{max-width:520px;margin:0 auto;padding:0 12px}
+
+/* ── шапка ── */
+header{position:sticky;top:0;z-index:20;background:var(--steel);color:#EAF0EE;
+  padding:10px 0 12px;box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.hrow{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.hdate{font-family:'Oswald';font-weight:400;font-size:12px;letter-spacing:.16em;
+  text-transform:uppercase;color:#9FB6B4}
+.hkcal{font-family:'IBM Plex Mono';font-weight:600;font-size:30px;line-height:1;
+  letter-spacing:-.02em}
+.hkcal small{font-size:12px;font-weight:400;color:#9FB6B4;letter-spacing:.04em;margin-left:5px}
+.hbar{height:4px;background:rgba(255,255,255,.14);margin-top:9px;position:relative;overflow:hidden}
+.hbar i{position:absolute;left:0;top:0;bottom:0;background:#8FBF9E;transition:width .35s}
+.hbar u{position:absolute;top:-2px;bottom:-2px;width:1px;background:#EAF0EE;opacity:.9}
+
+/* ── секції ── */
+.sec{margin:18px 0 0}
+.sech{font-family:'Oswald';font-weight:500;font-size:11px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-2);display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.sech:after{content:'';flex:1;height:1px;background:var(--rule)}
+
+/* ── прилад ── */
+.gauge{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);
+  padding:9px 11px 11px;margin-bottom:6px}
+.grow{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px}
+.gname{font-family:'Oswald';font-weight:400;font-size:13px;letter-spacing:.09em;text-transform:uppercase}
+.gval{font-family:'IBM Plex Mono';font-size:13px;font-weight:500}
+.gval b{font-weight:600}
+.gval span{color:var(--ink-3);font-weight:400}
+.track{height:9px;background:#DDE3E0;position:relative;overflow:hidden}
+.fill{position:absolute;left:0;top:0;bottom:0;transition:width .35s ease}
+.redline{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.redline.hard{background:var(--alarm)}
+.s-ok .fill{background:var(--ok)} .s-warn .fill{background:var(--warn)} .s-alarm .fill{background:var(--alarm)}
+.note{font-size:11.5px;color:var(--ink-2);margin-top:6px;line-height:1.35}
+
+/* ── кнопки ── */
+button{font-family:'Oswald';font-weight:500;letter-spacing:.11em;text-transform:uppercase;
+  font-size:12px;border:1px solid var(--ink);background:var(--ink);color:#F4F7F5;
+  padding:11px 14px;border-radius:var(--r);cursor:pointer}
+button:active{transform:translateY(1px)}
+button.ghost{background:transparent;color:var(--ink);border-color:var(--rule)}
+button.sm{padding:7px 10px;font-size:11px}
+button:disabled{opacity:.45}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--steel);outline-offset:2px}
+.btns{display:flex;gap:7px;flex-wrap:wrap}
+
+/* ── форми ── */
+label{display:block;font-family:'Oswald';font-size:10.5px;letter-spacing:.15em;
+  text-transform:uppercase;color:var(--ink-2);margin-bottom:3px}
+input,select{width:100%;font-family:'IBM Plex Mono';font-size:15px;padding:9px 10px;
+  border:1px solid var(--rule);border-radius:var(--r);background:var(--panel);color:var(--ink)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+.f{margin-bottom:11px}
+
+/* ── записи ── */
+.item{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);
+  padding:9px 11px;margin-bottom:5px;display:flex;gap:10px;align-items:flex-start}
+.item .m{flex:1;min-width:0}
+.item .t{font-weight:500;font-size:14px}
+.item .d{font-family:'IBM Plex Mono';font-size:11.5px;color:var(--ink-2);margin-top:2px}
+.item .k{font-family:'IBM Plex Mono';font-weight:600;font-size:15px;white-space:nowrap}
+.x{border:none;background:none;color:var(--ink-3);font-size:17px;padding:0 2px;cursor:pointer;
+  font-family:inherit;letter-spacing:0;text-transform:none}
+.empty{border:1px dashed var(--rule);border-radius:var(--r);padding:18px 14px;text-align:center;
+  color:var(--ink-2);font-size:13.5px}
+
+/* ── фото ── */
+.drop{border:1px dashed var(--ink-3);border-radius:var(--r);background:var(--panel);
+  padding:22px 14px;text-align:center}
+.drop p{margin:8px 0 14px;font-size:13px;color:var(--ink-2)}
+#prev{width:100%;border-radius:var(--r);display:block;margin-bottom:11px;border:1px solid var(--rule)}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px;margin-right:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.card{background:var(--panel);border:1px solid var(--rule);border-left:3px solid var(--steel);
+  border-radius:var(--r);padding:12px}
+.macro{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:10px 0}
+.macro div{text-align:center}
+.macro b{display:block;font-family:'IBM Plex Mono';font-size:15px;font-weight:600}
+.macro span{font-family:'Oswald';font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+.flag{font-size:12.5px;padding:8px 10px;border-radius:var(--r);margin-top:9px;line-height:1.4}
+.flag.a{background:#F6E7E4;color:#7A2418} .flag.w{background:#F7EEDA;color:#6D4A0C}
+.flag.o{background:#E4EEE7;color:#2E4F39}
+
+/* ── вага ── */
+.wstat{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px}
+.wstat div{background:var(--panel);border:1px solid var(--rule);border-radius:var(--r);padding:9px;text-align:center}
+.wstat b{display:block;font-family:'IBM Plex Mono';font-size:19px;font-weight:600}
+.wstat span{font-family:'Oswald';font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3)}
+svg.chart{width:100%;height:130px;background:var(--panel);border:1px solid var(--rule);border-radius:var(--r)}
+
+/* ── навігація ── */
+nav{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--panel);
+  border-top:1px solid var(--rule);display:flex;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:none;color:var(--ink-3);padding:12px 4px 13px;
+  font-size:10.5px;letter-spacing:.13em;border-radius:0;border-top:2px solid transparent}
+nav button.on{color:var(--ink);border-top-color:var(--steel)}
+.page{display:none} .page.on{display:block}
+.foot{font-size:11px;color:var(--ink-3);margin:20px 0 8px;line-height:1.5}
+</style>
+
+<header>
+  <div class="wrap">
+    <div class="hrow">
+      <div>
+        <div class="hdate" id="dLabel">—</div>
+        <div class="hkcal"><span id="hK">0</span><small id="hKof">/ — ккал</small></div>
+      </div>
+      <div style="text-align:right">
+        <div class="hdate">Залишок</div>
+        <div class="hkcal" id="hLeft" style="font-size:22px">—</div>
+      </div>
+    </div>
+    <div class="hbar"><i id="hFill" style="width:0"></i><u id="hTick" style="left:100%"></u></div>
+  </div>
+</header>
+
+<div class="wrap">
+
+<div id="warn" class="flag w" style="display:none;margin-top:12px">
+  <b>Автозбереження вимкнене</b> — сховище цього середовища недоступне. Записи живуть,
+  доки відкрито вкладку. Внизу «День» — <b>Експорт</b>: копіюй рядок стану перед закриттям,
+  вставляй назад при наступному відкритті.
+</div>
+
+<!-- ═══ ДЕНЬ ═══ -->
+<div class="page on" id="p-day">
+  <div class="sec">
+    <div class="sech">Приладова панель</div>
+    <div id="gauges"></div>
+  </div>
+  <div class="sec">
+    <div class="sech">Записи за добу</div>
+    <div id="log"></div>
+    <div class="btns" style="margin-top:9px">
+      <button onclick="go('p-cam')">+ Фото</button>
+      <button class="ghost" onclick="go('p-add')">+ Вручну</button>
+      <button class="ghost" onclick="addWater()">+ 250 мл води</button>
+      <button class="ghost" onclick="copyDay()">Скопіювати добу</button>
+    </div>
+  </div>
+  <div class="sec" id="favWrap" style="display:none">
+    <div class="sech">Часте (1 дотик)</div>
+    <div class="btns" id="favs"></div>
+  </div>
+  <div class="sec">
+    <div class="sech">Стан — перенесення між сеансами</div>
+    <textarea id="stateBox" rows="3" placeholder="Тут з'явиться рядок стану. Або встав сюди збережений раніше."
+      style="width:100%;font-family:'IBM Plex Mono';font-size:11px;padding:9px;border:1px solid var(--rule);
+      border-radius:3px;background:var(--panel);color:var(--ink);resize:vertical"></textarea>
+    <div class="btns" style="margin-top:7px">
+      <button class="ghost sm" onclick="expState()">Експорт</button>
+      <button class="ghost sm" onclick="impState()">Імпорт</button>
+      <button class="ghost sm" onclick="copyDay()">Скопіювати добу для чату</button>
+    </div>
+    <div class="note">Експорт → скопіюй рядок собі в Нотатки. Наступного разу встав його
+      і натисни Імпорт — профіль, записи й історія ваги повернуться.</div>
+  </div>
+  <div class="foot">
+    Оцінка за фото — приблизна (типова похибка ±20–30% по калоріях, більша по натрію).
+    Цінність у стабільності тренду, не в точності одного запису.
+  </div>
+</div>
+
+<!-- ═══ ФОТО ═══ -->
+<div class="page" id="p-cam">
+  <div class="sec">
+    <div class="sech">Аналіз тарілки</div>
+    <div id="camIdle">
+      <div class="drop">
+        <div style="font-family:'Oswald';font-size:15px;letter-spacing:.1em;text-transform:uppercase">Сфотографуй порцію</div>
+        <p>Знімай зверху, під кутом ~45°. Поклади поруч ложку або виделку — це дає масштаб і сильно зменшує похибку.</p>
+        <div class="btns" style="justify-content:center">
+          <button onclick="fCam.click()">Камера</button>
+          <button class="ghost" onclick="fGal.click()">З галереї</button>
+        </div>
+      </div>
+      <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
+      <input type="file" id="fGal" accept="image/*" hidden>
+    </div>
+    <div id="camWork" style="display:none">
+      <img id="prev" alt="Знімок страви">
+      <div class="f"><label>Уточнення (не обов'язково)</label>
+        <input id="hint" placeholder="напр.: каша гречана, тушонка, хліб 2 скибки"></div>
+      <div class="btns">
+        <button id="goBtn" onclick="analyze()">Розібрати</button>
+        <button class="ghost" onclick="resetCam()">Скинути</button>
+      </div>
+      <div id="res" style="margin-top:13px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ВРУЧНУ ═══ -->
+<div class="page" id="p-add">
+  <div class="sec">
+    <div class="sech">Ручний запис</div>
+    <div class="f"><label>Назва</label><input id="mN" placeholder="Каша перлова з тушонкою"></div>
+    <div class="grid3">
+      <div class="f"><label>Ккал</label><input id="mK" type="number" inputmode="numeric"></div>
+      <div class="f"><label>Білок г</label><input id="mP" type="number" inputmode="numeric"></div>
+      <div class="f"><label>Жир г</label><input id="mF" type="number" inputmode="numeric"></div>
+    </div>
+    <div class="grid3">
+      <div class="f"><label>НЖК г</label><input id="mS" type="number" inputmode="numeric"></div>
+      <div class="f"><label>Вугл. г</label><input id="mC" type="number" inputmode="numeric"></div>
+      <div class="f"><label>Клітк. г</label><input id="mB" type="number" inputmode="numeric"></div>
+    </div>
+    <div class="grid2">
+      <div class="f"><label>Натрій мг</label><input id="mNa" type="number" inputmode="numeric"></div>
+      <div class="f"><label>Цукор дод. г</label><input id="mSu" type="number" inputmode="numeric"></div>
+    </div>
+    <div class="btns"><button onclick="manualAdd()">Записати</button>
+      <button class="ghost" onclick="go('p-day')">Назад</button></div>
+  </div>
+</div>
+
+<!-- ═══ ВАГА ═══ -->
+<div class="page" id="p-wt">
+  <div class="sec">
+    <div class="sech">Динаміка ваги</div>
+    <div class="wstat">
+      <div><b id="wNow">—</b><span>Зараз</span></div>
+      <div><b id="wDelta">—</b><span>Від старту</span></div>
+      <div><b id="wRate">—</b><span>кг/тиждень</span></div>
+    </div>
+    <svg class="chart" id="chart" viewBox="0 0 320 130" preserveAspectRatio="none" role="img" aria-label="Графік ваги"></svg>
+    <div class="note" id="wGoal" style="margin-top:9px"></div>
+    <div class="grid2" style="margin-top:11px">
+      <div class="f"><label>Вага, кг</label><input id="wIn" type="number" step="0.1" inputmode="decimal"></div>
+      <div class="f"><label style="visibility:hidden">.</label><button style="width:100%" onclick="logWeight()">Записати</button></div>
+    </div>
+    <div id="wList"></div>
+  </div>
+</div>
+
+<!-- ═══ ПРОФІЛЬ ═══ -->
+<div class="page" id="p-prof">
+  <div class="sec">
+    <div class="sech">Вихідні дані</div>
+    <div class="grid3">
+      <div class="f"><label>Зріст см</label><input id="pH" type="number" inputmode="numeric"></div>
+      <div class="f"><label>Вага кг</label><input id="pW" type="number" step="0.1" inputmode="decimal"></div>
+      <div class="f"><label>Вік</label><input id="pA" type="number" inputmode="numeric"></div>
+    </div>
+    <div class="f"><label>Талія, см (не обов'язково)</label><input id="pWa" type="number" inputmode="numeric"></div>
+    <div class="f"><label>Рухова активність</label>
+      <select id="pAct">
+        <option value="1.2">Мінімальна — сидяча служба</option>
+        <option value="1.375" selected>Легка — ходьба, 1–2 тренування/тиж</option>
+        <option value="1.55">Помірна — 3–5 навантажень/тиж</option>
+        <option value="1.725">Висока — щоденні навантаження</option>
+      </select></div>
+    <div class="f"><label>Темп зниження</label>
+      <select id="pDef">
+        <option value="400">Обережний — 400 ккал (≈0,35 кг/тиж)</option>
+        <option value="500" selected>Базовий — 500 ккал (≈0,45 кг/тиж)</option>
+        <option value="650">Прискорений — 650 ккал (≈0,6 кг/тиж)</option>
+      </select></div>
+    <button onclick="saveProfile()">Перерахувати норми</button>
+    <div id="calc" style="margin-top:15px"></div>
+  </div>
+  <div class="sec">
+    <div class="sech">Ключ API — для аналізу фото</div>
+    <div class="f"><label>Ключ (sk-ant-…)</label>
+      <input id="pKey" type="password" autocomplete="off" placeholder="вставити ключ"></div>
+    <div class="btns"><button onclick="saveKey()">Зберегти ключ</button>
+      <button class="ghost" onclick="clearKey()">Видалити</button></div>
+    <div class="note" id="keyState" style="margin-top:8px"></div>
+    <div class="note">Ключ зберігається лише на цьому телефоні й нікуди не передається,
+      крім запитів до API. Отримати: console.anthropic.com → API keys.</div>
+  </div>
+  <div class="sec">
+    <div class="sech">Червоні лінії — звідки</div>
+    <div class="card" style="font-size:12.5px;line-height:1.55">
+      <b style="font-family:'Oswald';letter-spacing:.08em">НЖК ≤7% ккал</b> — дуже високий СС-ризик (документована бляшка), ESC 2021.<br>
+      <b style="font-family:'Oswald';letter-spacing:.08em">Натрій ≤2000 мг</b> — АГ + двобічні конкременти; натрій підвищує кальційурію.<br>
+      <b style="font-family:'Oswald';letter-spacing:.08em">Білок 1,4 г/кг</b> — збереження м'язів у дефіциті; безпечно при ХХН G1A1, без надлишку тваринного білка через камені.<br>
+      <b style="font-family:'Oswald';letter-spacing:.08em">Клітковина ≥30 г</b> — ЛПНЩ, глікемія, ситість.<br>
+      <b style="font-family:'Oswald';letter-spacing:.08em">Додані цукри &lt;25 г</b> — фруктоза = прямий драйвер стеатозу.<br>
+      <b style="font-family:'Oswald';letter-spacing:.08em">Вода ≥2,5 л</b> — профілактика рецидиву конкрементів.<br>
+      <b style="font-family:'Oswald';letter-spacing:.08em">Алкоголь 0</b> — MASLD.<br>
+      <b style="font-family:'Oswald';letter-spacing:.08em">Червоне м'ясо ≤1×/тиж</b> — гемове залізо при феритині/DIOS + НЖК.
+    </div>
+  </div>
+  <div class="foot">Дані зберігаються локально в цьому артефакті. Розрахунок — Mifflin-St Jeor.
+    Це інструмент обліку, не заміна консультації лікаря.</div>
+</div>
+
+</div>
+
+<nav>
+  <button class="on" data-p="p-day" onclick="go('p-day')">День</button>
+  <button data-p="p-cam" onclick="go('p-cam')">Фото</button>
+  <button data-p="p-wt" onclick="go('p-wt')">Вага</button>
+  <button data-p="p-prof" onclick="go('p-prof')">Профіль</button>
+</nav>
+
+<script>
+/* ══════════ стан ══════════ */
+let P=null, LOG=[], W=[], FAV=[], T=null, img=null;
+const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+const K='log:'+today();
+
+let STORE_OK=true;
+async function sGet(k,d){
+  try{const r=localStorage.getItem('rc:'+k);return r?JSON.parse(r):d}catch(e){return d}
+}
+async function sSet(k,v){
+  try{localStorage.setItem('rc:'+k,JSON.stringify(v));
+    if(!STORE_OK){STORE_OK=true;banner()} return true}
+  catch(e){STORE_OK=false;banner();console.error('storage',k,e);return false}
+}
+function banner(){
+  const el=document.getElementById('warn');
+  const noKey=!localStorage.getItem('rc:apikey');
+  el.style.display=(!STORE_OK||noKey)?'':'none';
+  el.innerHTML = !STORE_OK
+    ? '<b>Збереження недоступне.</b> Відкрий файл через звичайну адресу (https), а не як вкладення.'
+    : '<b>Ключ API не введено.</b> Аналіз фото не працюватиме. Вкладка «Профіль» → поле внизу. Ручний запис працює без ключа.';
+}
+
+/* ══════════ норми ══════════ */
+function targets(p){
+  const bmr=10*p.w+6.25*p.h-5*p.a+5;
+  const tdee=bmr*p.act;
+  const kcal=Math.max(1500,Math.round((tdee-p.def)/10)*10);
+  const ref=23*Math.pow(p.h/100,2);                      // орієнтир ІМТ 23
+  const abw=p.w>ref?ref+0.4*(p.w-ref):p.w;               // скоригована вага
+  return {
+    bmr:Math.round(bmr), tdee:Math.round(tdee), kcal,
+    prot:Math.round(1.4*abw),
+    fat:Math.round(kcal*0.30/9),
+    sat:Math.round(kcal*0.07/9),
+    carb:Math.round((kcal-1.4*abw*4-kcal*0.30)/4),
+    fib:Math.max(30,Math.round(kcal/1000*14)),
+    na:2000, sug:25,
+    water:Math.max(2500,Math.round(33*p.w/100)*100),
+    ref:Math.round(ref), bmi:(p.w/Math.pow(p.h/100,2)).toFixed(1),
+    g7:(p.w*0.93).toFixed(1), g10:(p.w*0.90).toFixed(1)
+  };
+}
+
+/* ══════════ прилади ══════════ */
+const SUM=f=>LOG.reduce((s,x)=>s+(+x[f]||0),0);
+function state(v,t,kind){
+  const r=t?v/t:0;
+  if(kind==='goal') return r>=.9?'s-ok':r>=.5?'s-warn':'s-alarm';
+  if(kind==='cap')  return r>1?'s-alarm':r>.8?'s-warn':'s-ok';
+  return r>1.1?'s-alarm':r>1?'s-warn':'s-ok';
+}
+function gauge(name,v,t,u,kind,dec){
+  const pct=Math.min(100,t?v/t*100:0), over=t&&v>t;
+  const n=x=>dec?(+x).toFixed(1):Math.round(x);
+  return `<div class="gauge ${state(v,t,kind)}">
+    <div class="grow"><div class="gname">${name}</div>
+      <div class="gval"><b>${n(v)}</b><span> / ${n(t)} ${u}</span></div></div>
+    <div class="track"><div class="fill" style="width:${pct}%"></div>
+      <div class="redline${over?' hard':''}" style="left:calc(100% - 1px)"></div></div>
+  </div>`;
+}
+function render(){
+  document.getElementById('dLabel').textContent=new Date().toLocaleDateString('uk-UA',{weekday:'long',day:'numeric',month:'long'});
+  if(!T){document.getElementById('gauges').innerHTML=
+    `<div class="empty">Заповни зріст, вагу та вік у вкладці <b>Профіль</b> — і панель увімкнеться.</div>`;
+    renderLog();return}
+  const k=SUM('kcal');
+  document.getElementById('hK').textContent=Math.round(k);
+  document.getElementById('hKof').textContent='/ '+T.kcal+' ккал';
+  document.getElementById('hLeft').textContent=Math.round(T.kcal-k);
+  document.getElementById('hFill').style.width=Math.min(100,k/T.kcal*100)+'%';
+  document.getElementById('hFill').style.background=k>T.kcal*1.1?'#E08878':k>T.kcal?'#E5C071':'#8FBF9E';
+
+  document.getElementById('gauges').innerHTML=
+    gauge('Енергія',k,T.kcal,'ккал','budget')+
+    gauge('Білок',SUM('prot'),T.prot,'г','goal')+
+    gauge('Клітковина',SUM('fib'),T.fib,'г','goal')+
+    gauge('Вода',SUM('water')/1000,T.water/1000,'л','goal',1)+
+    gauge('НЖК — редлайн',SUM('sat'),T.sat,'г','cap')+
+    gauge('Натрій — редлайн',SUM('na'),T.na,'мг','cap')+
+    gauge('Додані цукри — редлайн',SUM('sug'),T.sug,'г','cap')+
+    gauge('Жир загальний',SUM('fat'),T.fat,'г','budget')+
+    gauge('Вуглеводи',SUM('carb'),T.carb,'г','budget');
+  renderLog();renderFav();
+}
+function renderLog(){
+  const el=document.getElementById('log');
+  if(!LOG.length){el.innerHTML=`<div class="empty">Порожньо. Перший запис — з фото або вручну.</div>`;return}
+  el.innerHTML=LOG.map((x,i)=>`<div class="item"><div class="m">
+    <div class="t">${esc(x.name)}</div>
+    <div class="d">Б ${Math.round(x.prot||0)} · Ж ${Math.round(x.fat||0)} (НЖК ${Math.round(x.sat||0)}) · В ${Math.round(x.carb||0)} · Na ${Math.round(x.na||0)}мг</div>
+    </div><div class="k">${Math.round(x.kcal||0)}</div>
+    <button class="x" aria-label="Видалити" onclick="del(${i})">×</button></div>`).join('');
+}
+function renderFav(){
+  const w=document.getElementById('favWrap');
+  if(!FAV.length){w.style.display='none';return}
+  w.style.display='';
+  document.getElementById('favs').innerHTML=FAV.slice(0,8).map((f,i)=>
+    `<button class="ghost sm" onclick="addFav(${i})">${esc(f.name)} · ${Math.round(f.kcal)}</button>`).join('');
+}
+const esc=s=>String(s??'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+
+/* ══════════ записи ══════════ */
+async function add(e){
+  LOG.push(e); await sSet(K,LOG);
+  if(e.name&&e.kcal&&!e.name.startsWith('Вода')){
+    FAV=[e,...FAV.filter(f=>f.name!==e.name)].slice(0,12); await sSet('favorites',FAV);
+  }
+  render();
+}
+async function del(i){LOG.splice(i,1);await sSet(K,LOG);render()}
+function addFav(i){add({...FAV[i]});go('p-day')}
+function addWater(){add({name:'Вода 250 мл',water:250,kcal:0})}
+function manualAdd(){
+  const g=id=>+document.getElementById(id).value||0;
+  const n=document.getElementById('mN').value.trim();
+  if(!n){document.getElementById('mN').focus();return}
+  add({name:n,kcal:g('mK'),prot:g('mP'),fat:g('mF'),sat:g('mS'),carb:g('mC'),fib:g('mB'),na:g('mNa'),sug:g('mSu')});
+  ['mN','mK','mP','mF','mS','mC','mB','mNa','mSu'].forEach(i=>document.getElementById(i).value='');
+  go('p-day');
+}
+
+/* ══════════ фото ══════════ */
+['fCam','fGal'].forEach(id=>document.getElementById(id).addEventListener('change',ev=>{
+  const f=ev.target.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onerror=()=>alert('Не вдалося прочитати файл. Спробуй інший знімок.');
+  rd.onload=()=>{const im=new Image();
+    im.onerror=()=>alert('Формат знімка не читається. Налаштування → Камера → Формати → «Найсумісніший», і зніми ще раз.');
+    im.onload=()=>{
+    const s=Math.min(1,1024/Math.max(im.width,im.height));
+    const c=document.createElement('canvas');c.width=im.width*s;c.height=im.height*s;
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    img=c.toDataURL('image/jpeg',.8).split(',')[1];
+    document.getElementById('prev').src='data:image/jpeg;base64,'+img;
+    document.getElementById('camIdle').style.display='none';
+    document.getElementById('camWork').style.display='';
+    document.getElementById('res').innerHTML='';
+  };im.src=rd.result};
+  rd.readAsDataURL(f); ev.target.value='';
+}));
+function resetCam(){img=null;
+  document.getElementById('camIdle').style.display='';
+  document.getElementById('camWork').style.display='none';
+  document.getElementById('res').innerHTML='';document.getElementById('hint').value='';}
+
+const SYS=`Ти — клінічний нутриціолог. Оцінюєш порцію їжі за фото для конкретного пацієнта.
+
+ПАЦІЄНТ: чоловік, 53 р. Стеатоз печінки (MASLD, F0-1). Атеросклероз — документована бляшка сонної артерії, дуже високий СС-ризик, на статині. Артеріальна гіпертензія. Двобічні конкременти нирок. Підвищений феритин (DIOS). Остеоартроз колін. Харчується переважно у військовій їдальні.
+
+ЖОРСТКІ ОБМЕЖЕННЯ: НЖК ≤7% калорій · натрій ≤2000 мг/добу · додані цукри <25 г · алкоголь 0 · червоне м'ясо ≤1 раз/тиж (гемове залізо) · високооксалатні продукти обмежено (шпинат, буряк, ревінь, горіхи у великій кількості, чорний чай міцний) · без препаратів заліза · вода ≥2,5 л.
+
+ЗАВДАННЯ: визнач страви, оціни вагу порції (використай столові прибори/тарілку як масштаб), порахуй нутрієнти на всю видиму порцію. Українська/армійська кухня: враховуй, що каші готують на воді або з жиром, тушонка = 15-17 г жиру на 100 г, хліб житній ~200 ккал/100 г, борщ зі свининою ~60 ккал/100 мл.
+
+Відповідай ВИКЛЮЧНО валідним JSON, без markdown, без пояснень до чи після:
+{"name":"коротка назва українською","portion":"≈ХХХ г","kcal":0,"prot":0,"fat":0,"sat":0,"carb":0,"fib":0,"na":0,"sug":0,"conf":"висока|середня|низька","flags":[{"lvl":"alarm|warn|ok","txt":"конкретне зауваження щодо цієї страви для цього пацієнта, ≤120 символів"}],"swap":"одна конкретна заміна або дія, ≤110 символів, або порожній рядок"}`;
+
+let RES=null;              // результат аналізу живе тут, а не в HTML-атрибуті
+
+function saveKey(){
+  const v=document.getElementById('pKey').value.trim();
+  if(!v){alert('Поле порожнє.');return}
+  localStorage.setItem('rc:apikey',v);
+  document.getElementById('pKey').value='';keyState();banner();
+}
+function clearKey(){localStorage.removeItem('rc:apikey');keyState();banner()}
+function keyState(){
+  const k=localStorage.getItem('rc:apikey');
+  document.getElementById('keyState').innerHTML = k
+    ? `Ключ збережено (…${esc(k.slice(-6))}). Аналіз фото активний.`
+    : `Ключа немає. Працює тільки ручний запис.`;
+}
+
+async function analyze(){
+  if(!img)return;
+  const key=localStorage.getItem('rc:apikey');
+  const b=document.getElementById('goBtn'), r=document.getElementById('res');
+  if(!key){r.innerHTML=`<div class="flag w"><b>Немає ключа API.</b> Вкладка «Профіль» → «Ключ API».</div>`;return}
+  b.disabled=true;b.innerHTML='<span class="spin"></span>Аналіз';
+  r.innerHTML='';RES=null;
+  const hint=document.getElementById('hint').value.trim();
+  try{
+    const rsp=await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST",headers:{
+        "Content-Type":"application/json",
+        "x-api-key":key,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-sonnet-4-6",max_tokens:1000,system:SYS,
+        messages:[{role:"user",content:[
+          {type:"image",source:{type:"base64",media_type:"image/jpeg",data:img}},
+          {type:"text",text:hint?("Уточнення від пацієнта: "+hint):"Оціни цю порцію."}
+        ]}]})});
+    const data=await rsp.json();
+    if(data.error) throw new Error(data.error.message||JSON.stringify(data.error));
+    if(!data||!Array.isArray(data.content))
+      throw new Error('Відповідь сервера: '+JSON.stringify(data).slice(0,220));
+    const raw=data.content.filter(c=>c.type==='text').map(c=>c.text).join('');
+    const m=raw.match(/\{[\s\S]*\}/);                    // витягуємо JSON, ігноруючи будь-яку обгортку
+    if(!m) throw new Error('У відповіді немає JSON: '+raw.slice(0,220));
+    const d=JSON.parse(m[0]);
+    RES=d;
+    const N=x=>Math.round(+x||0);
+    r.innerHTML=`<div class="card">
+      <div style="font-family:'Oswald';font-size:17px;letter-spacing:.05em">${esc(d.name)}</div>
+      <div style="font-family:'IBM Plex Mono';font-size:12px;color:var(--ink-2);margin-top:2px">
+        ${esc(d.portion)} · впевненість: ${esc(d.conf)}</div>
+      <div class="macro">
+        <div><b>${N(d.kcal)}</b><span>ккал</span></div>
+        <div><b>${N(d.prot)}</b><span>білок</span></div>
+        <div><b>${N(d.fat)}<small style="font-size:11px;color:var(--ink-3)">/${N(d.sat)}</small></b><span>жир/НЖК</span></div>
+        <div><b>${N(d.na)}</b><span>натрій мг</span></div>
+      </div>
+      ${(d.flags||[]).map(f=>`<div class="flag ${f.lvl==='alarm'?'a':f.lvl==='warn'?'w':'o'}">${esc(f.txt)}</div>`).join('')}
+      ${d.swap?`<div class="flag o"><b>Дія:</b> ${esc(d.swap)}</div>`:''}
+      <div class="btns" style="margin-top:12px">
+        <button id="accBtn">Записати в добу</button>
+        <button class="ghost" onclick="resetCam()">Відхилити</button>
+      </div></div>`;
+    document.getElementById('accBtn').addEventListener('click',acc);
+  }catch(e){
+    r.innerHTML=`<div class="flag a"><b>Аналіз не пройшов.</b> ${esc(e.message||e)}</div>
+      <div class="btns" style="margin-top:9px">
+        <button onclick="analyze()">Спробувати ще раз</button>
+        <button class="ghost" onclick="go('p-add')">Внести вручну</button>
+      </div>`;
+  }
+  b.disabled=false;b.textContent='Розібрати';
+}
+
+function acc(){
+  if(!RES)return;
+  const d=RES,n=x=>+x||0;
+  add({name:(d.name||'Страва')+(d.portion?' ('+d.portion+')':''),
+    kcal:n(d.kcal),prot:n(d.prot),fat:n(d.fat),sat:n(d.sat),
+    carb:n(d.carb),fib:n(d.fib),na:n(d.na),sug:n(d.sug)});
+  RES=null;resetCam();go('p-day');
+}
+
+/* ══════════ вага ══════════ */
+async function logWeight(){
+  const v=+document.getElementById('wIn').value; if(!v)return;
+  W=[...W.filter(x=>x.d!==today()),{d:today(),kg:v}].sort((a,b)=>a.d<b.d?-1:1);
+  await sSet('weights',W);
+  if(P){P.w=v;await sSet('profile',P);T=targets(P);document.getElementById('pW').value=v}
+  document.getElementById('wIn').value='';renderW();render();
+}
+function renderW(){
+  const el=document.getElementById('wList');
+  if(!W.length){el.innerHTML=`<div class="empty">Зважуйся раз на тиждень, у той самий день, вранці натще, після туалету. Щоденні коливання — це вода, не жир.</div>`;
+    document.getElementById('chart').innerHTML='';return}
+  const first=W[0].kg,last=W[W.length-1].kg;
+  document.getElementById('wNow').textContent=last.toFixed(1);
+  document.getElementById('wDelta').textContent=(last-first>=0?'+':'')+(last-first).toFixed(1);
+  const days=(new Date(W[W.length-1].d)-new Date(W[0].d))/864e5;
+  document.getElementById('wRate').textContent=days>=7?((last-first)/days*7).toFixed(2):'—';
+  if(T)document.getElementById('wGoal').innerHTML=
+    `Ціль −7% (регрес стеатозу): <b>${(first*0.93).toFixed(1)} кг</b> · −10% (регрес запалення): <b>${(first*0.90).toFixed(1)} кг</b>.
+     Безпечний темп 0,4–0,8 кг/тиж — швидше підвищує ризик жовчних конкрементів і втрати м'язів.`;
+  el.innerHTML=W.slice().reverse().slice(0,10).map(x=>
+    `<div class="item"><div class="m"><div class="d">${x.d}</div></div><div class="k">${x.kg.toFixed(1)}</div></div>`).join('');
+  // графік
+  const pts=W.map(x=>x.kg),mn=Math.min(...pts)-.6,mx=Math.max(...pts)+.6,rg=mx-mn||1;
+  const X=i=>W.length<2?160:12+i*(296/(W.length-1)), Y=v=>118-(v-mn)/rg*100;
+  const path=W.map((x,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(x.kg).toFixed(1)}`).join(' ');
+  document.getElementById('chart').innerHTML=
+    `<path d="${path}" fill="none" stroke="#2C4A52" stroke-width="1.6"/>`+
+    W.map((x,i)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(x.kg).toFixed(1)}" r="2.6" fill="#2C4A52"/>`).join('')+
+    `<text x="6" y="12" font-family="IBM Plex Mono" font-size="9" fill="#93A19B">${mx.toFixed(1)}</text>`+
+    `<text x="6" y="126" font-family="IBM Plex Mono" font-size="9" fill="#93A19B">${mn.toFixed(1)}</text>`;
+}
+
+/* ══════════ профіль ══════════ */
+async function saveProfile(){
+  const g=id=>+document.getElementById(id).value||0;
+  const h=g('pH'),w=g('pW'),a=g('pA');
+  if(!h||!w||!a){document.getElementById('calc').innerHTML=
+    `<div class="flag a">Потрібні зріст, вага і вік — без них розрахунок неможливий.</div>`;return}
+  P={h,w,a,wa:g('pWa'),act:+document.getElementById('pAct').value,def:+document.getElementById('pDef').value};
+  await sSet('profile',P); T=targets(P);
+  if(!W.length){W=[{d:today(),kg:w}];await sSet('weights',W)}
+  showCalc(); renderW(); render();
+}
+function showCalc(){
+  const wa=P.wa?`<tr><td>Талія</td><td>${P.wa} см ${P.wa>=102?'— абдомінальне ожиріння (≥102)':P.wa>=94?'— підвищений ризик (≥94)':'— в нормі'}</td></tr>`:'';
+  document.getElementById('calc').innerHTML=`<div class="card">
+    <table style="width:100%;font-family:'IBM Plex Mono';font-size:12.5px;border-collapse:collapse">
+    <tr><td>Основний обмін</td><td style="text-align:right"><b>${T.bmr}</b> ккал</td></tr>
+    <tr><td>Витрати з активністю</td><td style="text-align:right"><b>${T.tdee}</b> ккал</td></tr>
+    <tr><td style="padding-top:6px;border-top:1px solid var(--rule)"><b>Норма на добу</b></td>
+        <td style="text-align:right;padding-top:6px;border-top:1px solid var(--rule)"><b>${T.kcal}</b> ккал</td></tr>
+    <tr><td>ІМТ</td><td style="text-align:right">${T.bmi}</td></tr>
+    ${wa}
+    <tr><td>Ціль −7% / −10%</td><td style="text-align:right">${T.g7} / ${T.g10} кг</td></tr>
+    </table>
+    <div class="macro" style="margin-top:12px">
+      <div><b>${T.prot}</b><span>білок г</span></div>
+      <div><b>${T.fat}</b><span>жир г</span></div>
+      <div><b>${T.carb}</b><span>вугл. г</span></div>
+      <div><b>${T.fib}</b><span>клітк. г</span></div>
+    </div></div>`;
+}
+
+/* ══════════ навігація ══════════ */
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id===id));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===id));
+  window.scrollTo(0,0);
+}
+
+/* ══════════ експорт / імпорт стану ══════════ */
+function expState(){
+  const s=JSON.stringify({v:1,d:today(),P,LOG,W,FAV});
+  document.getElementById('stateBox').value=s;
+  navigator.clipboard.writeText(s).then(()=>alert('Стан скопійовано. Збережи в Нотатках.')).catch(()=>{});
+}
+async function impState(){
+  const raw=document.getElementById('stateBox').value.trim();
+  if(!raw){alert('Встав рядок стану в поле вище.');return}
+  try{
+    const s=JSON.parse(raw);
+    if(s.P){P=s.P;T=targets(P);
+      pf('pH',P.h);pf('pW',P.w);pf('pA',P.a);pf('pWa',P.wa||'');
+      pf('pAct',P.act);pf('pDef',P.def);showCalc();}
+    LOG = (s.d===today() && Array.isArray(s.LOG)) ? s.LOG : [];   // чужий день не підтягуємо
+    W=Array.isArray(s.W)?s.W:[]; FAV=Array.isArray(s.FAV)?s.FAV:[];
+    renderW();render();
+    alert(s.d===today()?'Відновлено повністю.':'Профіль, вага і «часте» відновлені. Записи були за '+s.d+' — нова доба почата з нуля.');
+  }catch(e){alert('Рядок пошкоджений. Скопіюй його цілком, без пропусків.')}
+}
+const pf=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};
+
+/* ══════════ копіювання доби ══════════ */
+function copyDay(){
+  const R=Math.round;
+  const head=`РАЦІОН ${today()}`+(P?`  (норма ${T.kcal} ккал)`:'');
+  const rows=LOG.map(x=>`• ${x.name} — ${R(x.kcal||0)} ккал | Б${R(x.prot||0)} Ж${R(x.fat||0)} НЖК${R(x.sat||0)} В${R(x.carb||0)} Кл${R(x.fib||0)} Na${R(x.na||0)}мг`).join('\n');
+  const tot=T?`\nПІДСУМОК: ${R(SUM('kcal'))}/${T.kcal} ккал | білок ${R(SUM('prot'))}/${T.prot} | НЖК ${R(SUM('sat'))}/${T.sat} | натрій ${R(SUM('na'))}/${T.na} | клітковина ${R(SUM('fib'))}/${T.fib} | вода ${(SUM('water')/1000).toFixed(1)}/${(T.water/1000).toFixed(1)} л`:'';
+  const txt=head+'\n'+(rows||'(порожньо)')+tot;
+  navigator.clipboard.writeText(txt)
+    .then(()=>alert('Скопійовано. Встав у чат.'))
+    .catch(()=>prompt('Виділи й скопіюй:',txt));
+}
+
+/* ══════════ старт ══════════ */
+(async()=>{
+  keyState(); banner();
+  P=await sGet('profile',null); LOG=await sGet(K,[]); W=await sGet('weights',[]); FAV=await sGet('favorites',[]);
+  if(P){T=targets(P);
+    document.getElementById('pH').value=P.h;document.getElementById('pW').value=P.w;
+    document.getElementById('pA').value=P.a;document.getElementById('pWa').value=P.wa||'';
+    document.getElementById('pAct').value=P.act;document.getElementById('pDef').value=P.def;
+    showCalc();
+  }else{
+    pf('pH',184);pf('pW',99);pf('pA',53);       // відомі дані — залишається натиснути «Перерахувати»
+    go('p-prof');
+  }
+  renderW();render();
+})();
+</script>
