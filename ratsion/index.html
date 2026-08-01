@@ -164,7 +164,9 @@ nav button.on{color:var(--ink);border-top-color:var(--steel)}
     <div class="btns" style="margin-top:9px">
       <button onclick="go('p-cam')">+ Фото</button>
       <button class="ghost" onclick="go('p-add')">+ Вручну</button>
-      <button class="ghost" onclick="addWater()">+ 250 мл води</button>
+      <button class="ghost" onclick="addWater(250)">+250 мл</button>
+      <button class="ghost" onclick="addWater(500)">+500 мл</button>
+      <button class="ghost" onclick="addWater(1000)">+1 л</button>
       <button class="ghost" onclick="copyDay()">Скопіювати добу</button>
     </div>
   </div>
@@ -235,12 +237,46 @@ nav button.on{color:var(--ink);border-top-color:var(--steel)}
       <div class="f"><label>Вугл. г</label><input id="mC" type="number" inputmode="numeric"></div>
       <div class="f"><label>Клітк. г</label><input id="mB" type="number" inputmode="numeric"></div>
     </div>
-    <div class="grid2">
+    <div class="grid3">
       <div class="f"><label>Натрій мг</label><input id="mNa" type="number" inputmode="numeric"></div>
       <div class="f"><label>Цукор дод. г</label><input id="mSu" type="number" inputmode="numeric"></div>
+      <div class="f"><label>Вода мл</label><input id="mW" type="number" inputmode="numeric"></div>
     </div>
     <div class="btns"><button onclick="manualAdd()">Записати</button>
       <button class="ghost" onclick="go('p-day')">Назад</button></div>
+  </div>
+</div>
+
+<!-- ═══ ІСТОРІЯ ═══ -->
+<div class="page" id="p-hist">
+  <div class="sec">
+    <div class="sech">Середнє за період</div>
+    <div class="btns" style="margin-bottom:10px">
+      <button class="ghost sm" id="pd7" onclick="setPeriod(7)">7 днів</button>
+      <button class="ghost sm" id="pd14" onclick="setPeriod(14)">14 днів</button>
+      <button class="ghost sm" id="pd30" onclick="setPeriod(30)">30 днів</button>
+    </div>
+    <div id="avgBox"></div>
+  </div>
+  <div class="sec">
+    <div class="sech">Тренд</div>
+    <select id="metric" onchange="renderHist()" style="margin-bottom:9px">
+      <option value="kcal">Енергія, ккал</option>
+      <option value="prot">Білок, г</option>
+      <option value="sat">НЖК, г</option>
+      <option value="na">Натрій, мг</option>
+      <option value="fib">Клітковина, г</option>
+      <option value="sug">Додані цукри, г</option>
+      <option value="fat">Жир загальний, г</option>
+      <option value="carb">Вуглеводи, г</option>
+      <option value="water">Вода, мл</option>
+    </select>
+    <svg class="chart" id="hChart" viewBox="0 0 320 140" preserveAspectRatio="none" role="img" aria-label="Графік споживання"></svg>
+    <div class="note" id="hNote" style="margin-top:8px"></div>
+  </div>
+  <div class="sec">
+    <div class="sech">По днях</div>
+    <div id="histList"></div>
   </div>
 </div>
 
@@ -321,6 +357,7 @@ nav button.on{color:var(--ink);border-top-color:var(--steel)}
 <nav>
   <button class="on" data-p="p-day" onclick="go('p-day')">День</button>
   <button data-p="p-cam" onclick="go('p-cam')">Фото</button>
+  <button data-p="p-hist" onclick="go('p-hist')">Історія</button>
   <button data-p="p-wt" onclick="go('p-wt')">Вага</button>
   <button data-p="p-prof" onclick="go('p-prof')">Профіль</button>
 </nav>
@@ -440,13 +477,13 @@ async function add(e){
 }
 async function del(i){LOG.splice(i,1);await sSet(K,LOG);render()}
 function addFav(i){add({...FAV[i]});go('p-day')}
-function addWater(){add({name:'Вода 250 мл',water:250,kcal:0})}
+function addWater(ml){const v=ml||250;add({name:'Вода '+(v>=1000?(v/1000)+' л':v+' мл'),water:v,kcal:0})}
 function manualAdd(){
   const g=id=>+document.getElementById(id).value||0;
   const n=document.getElementById('mN').value.trim();
   if(!n){document.getElementById('mN').focus();return}
-  add({name:n,kcal:g('mK'),prot:g('mP'),fat:g('mF'),sat:g('mS'),carb:g('mC'),fib:g('mB'),na:g('mNa'),sug:g('mSu')});
-  ['mN','mK','mP','mF','mS','mC','mB','mNa','mSu'].forEach(i=>document.getElementById(i).value='');
+  add({name:n,kcal:g('mK'),prot:g('mP'),fat:g('mF'),sat:g('mS'),carb:g('mC'),fib:g('mB'),na:g('mNa'),sug:g('mSu'),water:g('mW')});
+  ['mN','mK','mP','mF','mS','mC','mB','mNa','mSu','mW'].forEach(i=>document.getElementById(i).value='');
   go('p-day');
 }
 
@@ -637,9 +674,106 @@ function showCalc(){
 
 /* ══════════ навігація ══════════ */
 function go(id){
+  if(id==='p-hist')renderHist();
   document.querySelectorAll('.page').forEach(p=>p.classList.toggle('on',p.id===id));
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.p===id));
   window.scrollTo(0,0);
+}
+
+/* ══════════ історія ══════════ */
+let PERIOD=7;
+const FIELDS=['kcal','prot','fat','sat','carb','fib','na','sug','water'];
+
+function allDays(){
+  const out=[];
+  for(const k of Object.keys(localStorage)){
+    if(!k.startsWith('rc:log:'))continue;
+    const d=k.slice(7);
+    let arr; try{arr=JSON.parse(localStorage.getItem(k))}catch(e){continue}
+    if(!Array.isArray(arr)||!arr.length)continue;
+    const t={d};
+    FIELDS.forEach(f=>t[f]=arr.reduce((s,x)=>s+(+x[f]||0),0));
+    if(t.kcal===0&&t.water===0)continue;
+    out.push(t);
+  }
+  return out.sort((a,b)=>a.d<b.d?-1:1);
+}
+function setPeriod(n){PERIOD=n;renderHist()}
+
+function renderHist(){
+  const days=allDays();
+  ['pd7','pd14','pd30'].forEach(id=>{
+    const b=document.getElementById(id);
+    b.style.background=(+id.slice(2)===PERIOD)?'var(--ink)':'transparent';
+    b.style.color=(+id.slice(2)===PERIOD)?'#F4F7F5':'var(--ink)';
+  });
+  if(!days.length){
+    document.getElementById('avgBox').innerHTML=`<div class="empty">Історія порожня. Записи з'являться тут із наступної доби.</div>`;
+    document.getElementById('histList').innerHTML='';
+    document.getElementById('hChart').innerHTML='';
+    document.getElementById('hNote').textContent='';
+    return;
+  }
+  const sel=days.slice(-PERIOD), n=sel.length;
+  const avg=f=>sel.reduce((s,x)=>s+x[f],0)/n;
+
+  // ── середні ──
+  if(T){
+    const row=(name,f,tgt,kind,unit,div)=>{
+      const v=avg(f)/(div||1), t=tgt/(div||1);
+      const pct=t?v/t*100:0;
+      const cls = kind==='goal' ? (pct>=90?'s-ok':pct>=60?'s-warn':'s-alarm')
+                : kind==='cap'  ? (pct>100?'s-alarm':pct>85?'s-warn':'s-ok')
+                :                 (pct>110||pct<70?'s-alarm':pct>100?'s-warn':'s-ok');
+      const fmt=x=>div?x.toFixed(1):Math.round(x);
+      return `<div class="gauge ${cls}">
+        <div class="grow"><div class="gname">${name}</div>
+          <div class="gval"><b>${fmt(v)}</b><span> / ${fmt(t)} ${unit} · ${Math.round(pct)}%</span></div></div>
+        <div class="track"><div class="fill" style="width:${Math.min(100,pct)}%"></div>
+          <div class="redline${pct>100?' hard':''}" style="left:calc(100% - 1px)"></div></div></div>`;
+    };
+    document.getElementById('avgBox').innerHTML=
+      `<div class="note" style="margin-bottom:9px">Днів у вибірці: <b>${n}</b></div>`+
+      row('Енергія','kcal',T.kcal,'budget','ккал')+
+      row('Білок','prot',T.prot,'goal','г')+
+      row('Клітковина','fib',T.fib,'goal','г')+
+      row('Вода','water',T.water,'goal','л',1000)+
+      row('НЖК','sat',T.sat,'cap','г')+
+      row('Натрій','na',T.na,'cap','мг')+
+      row('Додані цукри','sug',T.sug,'cap','г')+
+      row('Жир загальний','fat',T.fat,'budget','г')+
+      row('Вуглеводи','carb',T.carb,'budget','г');
+  }
+
+  // ── графік ──
+  const f=document.getElementById('metric').value;
+  const tgt=T?{kcal:T.kcal,prot:T.prot,fat:T.fat,sat:T.sat,carb:T.carb,fib:T.fib,na:T.na,sug:T.sug,water:T.water}[f]:0;
+  const vals=sel.map(x=>x[f]);
+  const mx=Math.max(...vals,tgt)*1.1||1, X=i=>sel.length<2?160:14+i*(292/(sel.length-1)), Y=v=>126-v/mx*108;
+  const path=sel.map((x,i)=>`${i?'L':'M'}${X(i).toFixed(1)},${Y(x[f]).toFixed(1)}`).join(' ');
+  const over=['sat','na','sug'].includes(f);
+  document.getElementById('hChart').innerHTML=
+    (tgt?`<line x1="14" y1="${Y(tgt).toFixed(1)}" x2="306" y2="${Y(tgt).toFixed(1)}" stroke="${over?'#9E2B1E':'#3F6B4E'}" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="14" y="${(Y(tgt)-4).toFixed(1)}" font-family="IBM Plex Mono" font-size="8" fill="${over?'#9E2B1E':'#3F6B4E'}">ціль ${Math.round(tgt)}</text>`:'')+
+    `<path d="${path}" fill="none" stroke="#2C4A52" stroke-width="1.6"/>`+
+    sel.map((x,i)=>{const bad=tgt&&(over? x[f]>tgt : x[f]<tgt*0.8);
+      return `<circle cx="${X(i).toFixed(1)}" cy="${Y(x[f]).toFixed(1)}" r="2.8" fill="${bad?'#9E2B1E':'#3F6B4E'}"/>`}).join('')+
+    `<text x="4" y="10" font-family="IBM Plex Mono" font-size="8" fill="#93A19B">${Math.round(mx)}</text>`;
+
+  const inRange=sel.filter(x=>tgt&&(over? x[f]<=tgt : x[f]>=tgt*0.9)).length;
+  document.getElementById('hNote').innerHTML=
+    `Днів у межах цілі: <b>${inRange} з ${n}</b> · середнє <b>${Math.round(avg(f))}</b> · максимум <b>${Math.round(Math.max(...vals))}</b> · мінімум <b>${Math.round(Math.min(...vals))}</b>`;
+
+  // ── таблиця ──
+  document.getElementById('histList').innerHTML=sel.slice().reverse().map(x=>{
+    const bad=[];
+    if(T){ if(x.sat>T.sat)bad.push('НЖК'); if(x.na>T.na)bad.push('Na'); if(x.prot<T.prot*0.8)bad.push('білок'); }
+    return `<div class="item"><div class="m">
+      <div class="t">${x.d}</div>
+      <div class="d">Б ${Math.round(x.prot)} · Ж ${Math.round(x.fat)} (НЖК ${Math.round(x.sat)}) · В ${Math.round(x.carb)} · Кл ${Math.round(x.fib)} · Na ${Math.round(x.na)} · вода ${(x.water/1000).toFixed(1)}л</div>
+      ${bad.length?`<div class="d" style="color:var(--alarm)">перевищено: ${bad.join(', ')}</div>`:''}
+      </div><div class="k">${Math.round(x.kcal)}</div></div>`;
+  }).join('');
 }
 
 /* ══════════ експорт / імпорт стану ══════════ */
